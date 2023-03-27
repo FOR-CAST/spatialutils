@@ -3,7 +3,7 @@ Type: Package
 Title: Utilities for Working with Spatial Data
 Description: Miscellaneous utilities to facilitate working with spatial data.
 Version: 0.0.0.9000
-Url: https://github.com/FOR-CAST/spatialutils
+URL: https://github.com/FOR-CAST/spatialutils
 Authors@R: c(
     utils::person(
       c("Alex", "M"), "Chubaty",
