@@ -1,0 +1,26 @@
+Package: spatialutils
+Type: Package
+Title: Utilities for Working with Spatial Data
+Description: Miscellaneous utilities to facilitate working with spatial data.
+Version: 0.0.0.9000
+Url: https://github.com/FOR-CAST/spatialutils
+Authors@R: c(
+    utils::person(
+      c("Alex", "M"), "Chubaty",
+      email = "achubaty@for-cast.ca",
+      role = c("aut", "cre"),
+      comment = c(ORCID = "0000-0001-7146-8135")
+    )
+    )
+Depends: R (>= 4.2)
+Imports:
+    sf,
+    smoothr
+Suggests: 
+    spelling
+BugReports: https://github.com/FOR-CAST/spatialutils/issues
+Encoding: UTF-8
+Language: en-CA
+License: GPL (>= 3)
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
