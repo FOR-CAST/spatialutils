@@ -52,7 +52,7 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           Ncpus: 2
           r-version: ${{ matrix.config.r }}
-          use-public-rspm: true
+          use-public-rspm: false
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
