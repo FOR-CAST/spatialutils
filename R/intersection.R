@@ -33,7 +33,6 @@ intersect_clean <- function(x, y, xcol, areaThresh = 0.05) {
   z <- lapply(names.x, function(p, polys, areas) {
     polys[polys[[xcol]] == p, ] |>
       st_collection_extract("POLYGON") |>
-      st_union() |>
       drop_crumbs(areaThresh * min(areas[[p]])) |>
       st_make_valid()
   }, polys = xy, areas = areas.x)
