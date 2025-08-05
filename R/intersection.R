@@ -19,8 +19,6 @@
 #' @return `sf` polygons object
 #'
 #' @export
-#' @importFrom sf st_area st_collection_extract st_intersection st_is_empty st_make_valid
-#' @importFrom smoothr drop_crumbs
 intersect_clean <- function(x, y, xcol, areaThresh = 0.05) {
   xy <- st_intersection(x, y) |>
     st_make_valid()
