@@ -7,9 +7,7 @@
 intersect_clean(x, y, xcol, areaThresh = 0.05)
 }
 \arguments{
-\item{x}{\code{sf} polygons object}
-
-\item{y}{\code{sf} polygons object}
+\item{x, y}{\code{sf} polygons object}
 
 \item{xcol}{character, name of the attribute column in \code{x} to use to identify features}
 
