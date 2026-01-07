@@ -2,6 +2,7 @@
 % Please edit documentation in R/perimeter.R
 \name{perimeter}
 \alias{perimeter}
+\alias{st_perimeter}
 \title{Perimeter of multiple polygons}
 \usage{
 perimeter(x)

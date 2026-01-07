@@ -4,6 +4,7 @@
 #'
 #' @returns `sf` polygon object
 #'
+#' @aliases st_perimeter
 #' @export
 perimeter <- function(x) {
   sf::st_union(x) |> sf::st_make_valid() |> sf::st_exterior_ring() |> sf::st_as_sf()
