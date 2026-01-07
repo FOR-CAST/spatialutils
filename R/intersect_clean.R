@@ -19,20 +19,24 @@
 #'
 #' @export
 intersect_clean <- function(x, y, xcol, areaThresh = 0.05) {
-  xy <- sf::st_intersection(x, y) |>
-    sf::st_make_valid()
+  xy <- sf::st_intersection(x, y) |> sf::st_make_valid()
   names.x <- unique(xy[[xcol]])
   areas.x <- lapply(names.x, function(p) {
     sf::st_area(x[x[[xcol]] == p, ])
   })
   names(areas.x) <- names.x
 
-  z <- lapply(names.x, function(p, polys, areas) {
-    polys[polys[[xcol]] == p, ] |>
-      sf::st_collection_extract("POLYGON") |>
-      smoothr::drop_crumbs(areaThresh * min(areas[[p]])) |>
-      sf::st_make_valid()
-  }, polys = xy, areas = areas.x)
+  z <- lapply(
+    names.x,
+    function(p, polys, areas) {
+      polys[polys[[xcol]] == p, ] |>
+        sf::st_collection_extract("POLYGON") |>
+        smoothr::drop_crumbs(areaThresh * min(areas[[p]])) |>
+        sf::st_make_valid()
+    },
+    polys = xy,
+    areas = areas.x
+  )
   z <- do.call(rbind, z)
   z <- z[!sf::st_is_empty(z), ]
 
