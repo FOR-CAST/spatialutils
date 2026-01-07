@@ -1,7 +1,7 @@
 Type: Package
 Package: spatialutils
 Title: Utilities for Working with Spatial Data
-Version: 0.0.0.9005
+Version: 0.0.0.9006
 Authors@R: 
     person(c("Alex", "M"), "Chubaty", , "achubaty@for-cast.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7146-8135"))
@@ -11,11 +11,11 @@ License: GPL (>= 3)
 URL: https://github.com/FOR-CAST/spatialutils
 BugReports: https://github.com/FOR-CAST/spatialutils/issues
 Depends: 
-    R (>= 4.2)
+    R (>= 4.3)
 Imports:
     dplyr,
     rlang,
-    sf,
+    sf (>= 1.0-17),
     smoothr
 Suggests: 
     ggplot2,
