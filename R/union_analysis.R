@@ -64,11 +64,15 @@ st_union_analysis <- function(x, y, union_by = NULL) {
   names_diff_y <- setdiff(names(y), names(x))
 
   if (length(names_diff_y) > 0) {
-    dx <- dplyr::mutate(dx, {{ names_diff_y }} := NA_character_, .before = "geometry")
+    for (col_name in seq_along(names_diff_y)) {
+      dx <- dplyr::mutate(dx, {{ col_name }} := NA_character_, .before = "geometry")
+    }
   }
 
   if (length(names_diff_x) > 0) {
-    dy <- dplyr::mutate(dy, {{ names_diff_x }} := NA_character_, .before = "geometry")
+    for (col_name in seq_along(names_diff_x)) {
+      dy <- dplyr::mutate(dy, {{ names_diff_x }} := NA_character_, .before = "geometry")
+    }
   }
 
   u <- rbind(i, dx, dy)
