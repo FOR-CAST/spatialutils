@@ -22,12 +22,10 @@ jobs:
           - {os: windows-latest, r: 'release'}
           - {os: windows-latest, r: 'oldrel-1'}
           - {os: windows-latest, r: 'oldrel-2'}
-          - {os: windows-latest, r: 'oldrel-3'}
           - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}  ## currently 4.5
           - {os: ubuntu-latest,   r: 'oldrel-1'} ## currently 4.4
           - {os: ubuntu-latest,   r: 'oldrel-2'} ## currently 4.3
-          - {os: ubuntu-latest,   r: 'oldrel-3'} ## currently 4.2
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
