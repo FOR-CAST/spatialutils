@@ -44,21 +44,19 @@ ggplot2::ggplot() +
   ggplot2::geom_sf(data = y, fill = "darkgreen", alpha = 0.5)
 
 ## uses attribute values from x for intersections
-i <- sf::st_intersection(x, y) |>
+xy <- sf::st_intersection(x, y) |>
   sf::st_make_valid() |>
   dplyr::select(-dplyr::ends_with(".1"))
 
 dx <- sf::st_difference(x, sf::st_union(y))
 dy <- sf::st_difference(y, sf::st_union(x))
 
-u <- rbind(i, dx, dy) |>
-  dplyr::summarise()
-identical(u, st_union_analysis(x, y))
+u <- st_union_analysis(x, y)
 
 ggplot2::ggplot() +
   ggplot2::geom_sf(data = dx, fill = "lightblue", alpha = 0.25) +
   ggplot2::geom_sf(data = dy, fill = "darkred", alpha = 0.25) +
-  ggplot2::geom_sf(data = i, fill = "purple", alpha = 0.25) +
+  ggplot2::geom_sf(data = xy, fill = "purple", alpha = 0.25) +
   ggplot2::geom_sf(data = u, fill = NA, col = "black", alpha = 0.25, linewidth = 1.2)
 
 }
