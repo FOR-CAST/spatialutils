@@ -81,8 +81,8 @@ st_union_analysis <- function(x, y, union_by = NULL) {
   subset_x <- x[x_intersects, ]
   subset_y <- y[intersects_idy, ]
 
-  dx <- sf::st_difference(subset_x, sf::st_union(subset_y))
-  dy <- sf::st_difference(subset_y, sf::st_union(subset_x))
+  dx <- st_erase(subset_x, subset_y)
+  dy <- st_erase(subset_y, subset_x)
 
   ## deal with non-intersecting polygons
   nonintersected_x <- x[!x_intersects, ]
