@@ -16,11 +16,15 @@ Imports:
     dplyr,
     rlang,
     sf (>= 1.0-17),
-    smoothr
-Suggests: 
+    smoothr,
+    terra
+Suggests:
     ggplot2,
-    spelling
+    spelling,
+    testthat (>= 3.0.0),
+    units
+Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-CA
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.0.0
