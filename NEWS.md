@@ -1,3 +1,7 @@
+# spatialutils 0.0.0.9009
+
+* Relicensed from GPL (>= 3) to Apache License (>= 2).
+
 # spatialutils 0.0.0.9008
 
 * `calc_centroid` to get the coordinates of the centroid of a polygon;
