@@ -1,3 +1,8 @@
+# spatialutils 0.0.0.9010
+
+* `prep_vector` to crop, mask, and reproject a vector to a study area -- a lean, `terra`-based
+  replacement for the crop/mask/reproject that `reproducible::prepInputs()` did internally.
+
 # spatialutils 0.0.0.9009
 
 * Relicensed from GPL (>= 3) to Apache License (>= 2).
