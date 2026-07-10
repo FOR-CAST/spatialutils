@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spatialutils</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9011</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9012</span>
       </span>
     </div>
 
@@ -47,6 +47,11 @@
       <small>Source: <a href="https://github.com/FOR-CAST/spatialutils/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.0.0.9012" id="spatialutils-0009012">spatialutils 0.0.0.9012<a class="anchor" aria-label="anchor" href="#spatialutils-0009012"></a></h2>
+<ul><li>
+<code>repair_geoms</code> to fix invalid geometries efficiently: validate once and run <code><a href="https://rspatial.github.io/terra/reference/is.valid.html" class="external-link">terra::makeValid()</a></code> on only the invalid subset, then recombine with the already-valid majority (dropping any that stay invalid or empty). Avoids running <code>makeValid()</code> over a whole layer when only a small fraction of geometries are invalid, e.g. national fire perimeters where ~767 of ~41k NFDB polygons are invalid. Now used internally by <code>prep_landbase</code>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9011" id="spatialutils-0009011">spatialutils 0.0.0.9011<a class="anchor" aria-label="anchor" href="#spatialutils-0009011"></a></h2>
 <ul><li>
