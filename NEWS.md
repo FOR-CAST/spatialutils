@@ -1,3 +1,11 @@
+# spatialutils 0.0.0.9012
+
+* `repair_geoms` to fix invalid geometries efficiently: validate once and run
+  `terra::makeValid()` on only the invalid subset, then recombine with the already-valid
+  majority (dropping any that stay invalid or empty). Avoids running `makeValid()` over a whole
+  layer when only a small fraction of geometries are invalid, e.g. national fire perimeters
+  where ~767 of ~41k NFDB polygons are invalid. Now used internally by `prep_landbase`.
+
 # spatialutils 0.0.0.9011
 
 * `read_vector_aoi` to read a vector source with the spatial filter pushed down to the GDAL/OGR

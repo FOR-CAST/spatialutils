@@ -232,10 +232,9 @@ prep_landbase <- function(
     return(v)
   }
 
-  ## repair, then drop any geometries that remain invalid or empty
-  v <- terra::makeValid(v)
-  v <- v[terra::is.valid(v), ]
-  v <- v[!terra::is.empty(v), ]
+  ## repair invalid geometries (makeValid only the invalid subset) and drop any that
+  ## remain invalid or empty after repair
+  v <- repair_geoms(v)
 
   ## standardise the status column name
   names(v)[names(v) == status_col] <- status_out

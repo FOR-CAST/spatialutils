@@ -34,6 +34,7 @@ Other spatial helpers:
 \code{\link[=create_bbox]{create_bbox()}},
 \code{\link[=extract_coords]{extract_coords()}},
 \code{\link[=prep_agg_lonlat_raster]{prep_agg_lonlat_raster()}},
+\code{\link[=repair_geoms]{repair_geoms()}},
 \code{\link[=spatial_join_intersects]{spatial_join_intersects()}}
 }
 \concept{spatial helpers}

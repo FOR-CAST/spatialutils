@@ -39,6 +39,7 @@ Other spatial helpers:
 \code{\link[=calc_centroid]{calc_centroid()}},
 \code{\link[=create_bbox]{create_bbox()}},
 \code{\link[=extract_coords]{extract_coords()}},
+\code{\link[=repair_geoms]{repair_geoms()}},
 \code{\link[=save_gpkg]{save_gpkg()}},
 \code{\link[=spatial_join_intersects]{spatial_join_intersects()}}
 }
