@@ -22,7 +22,7 @@ and is preferable to area-thresholding crumbs away (see intersect_clean()).'><!-
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spatialutils</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9012</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9013</span>
       </span>
     </div>
 
@@ -102,7 +102,10 @@ expected, so areas and border lengths are metric; warns otherwise.</p></dd>
 <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
 <dd><p>sliver-area cutoff. Either a <span class="pkg">units</span> object (e.g.
 <code>units::set_units(1, "ha")</code>) or a bare numeric in square metres. Polygons
-with area <code>&lt;= threshold</code> are candidate slivers.</p></dd>
+with area <code>&lt;= threshold</code> are candidate slivers. Areas are <strong>planar</strong>, in
+the layer's own projection (as <code><a href="https://r-spatial.github.io/sf/reference/geos_measures.html" class="external-link">sf::st_area()</a></code> and ArcGIS <code>Shape_Area</code>
+report them), not the geodesic areas <code><a href="https://rspatial.github.io/terra/reference/expanse.html" class="external-link">terra::expanse()</a></code> returns by
+default; the two differ in any projection that is not equal-area.</p></dd>
 
 
 <dt id="arg-keep">keep<a class="anchor" aria-label="anchor" href="#arg-keep"></a></dt>

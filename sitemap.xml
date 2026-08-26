@@ -6,11 +6,15 @@
 <url><loc>/news/index.html</loc></url>
 <url><loc>/reference/calc_centroid.html</loc></url>
 <url><loc>/reference/create_bbox.html</loc></url>
+<url><loc>/reference/dissolve_by.html</loc></url>
+<url><loc>/reference/drop_values.html</loc></url>
 <url><loc>/reference/eliminate_slivers.html</loc></url>
+<url><loc>/reference/expanse_planar.html</loc></url>
 <url><loc>/reference/extract_coords.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
 <url><loc>/reference/intersect_clean.html</loc></url>
 <url><loc>/reference/intersect_relate.html</loc></url>
+<url><loc>/reference/nn_distance.html</loc></url>
 <url><loc>/reference/outerBuffer.html</loc></url>
 <url><loc>/reference/perimeter.html</loc></url>
 <url><loc>/reference/prep_agg_lonlat_raster.html</loc></url>

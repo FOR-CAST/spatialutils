@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spatialutils</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9012</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9013</span>
       </span>
     </div>
 
@@ -47,6 +47,19 @@
       <small>Source: <a href="https://github.com/FOR-CAST/spatialutils/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.0.0.9013" id="spatialutils-0009013">spatialutils 0.0.0.9013<a class="anchor" aria-label="anchor" href="#spatialutils-0009013"></a></h2>
+<ul><li>
+<code><a href="../reference/dissolve_by.html">dissolve_by()</a></code> to dissolve a vector layer on one or more attributes, keeping <code>NA</code> as a group of its own. <code>terra::aggregate(by = )</code> cannot dissolve on several columns when any of them contains <code>NA</code>: it returns a <code>SpatVector</code> whose attribute table has fewer rows than it has geometries, which then errors on the next access rather than at the aggregate call.</li>
+<li>
+<code><a href="../reference/drop_values.html">drop_values()</a></code> to strip every attribute from a <code>SpatVector</code> while keeping its geometries – <code>x[, character(0)]</code> is an error in <code>terra</code>, and <code>x$col &lt;- NULL</code> has to be repeated per column.</li>
+<li>
+<code><a href="../reference/eliminate_slivers.html">eliminate_slivers()</a></code> now thresholds on <strong>planar</strong> area in the layer’s own projection, matching <code><a href="https://r-spatial.github.io/sf/reference/geos_measures.html" class="external-link">sf::st_area()</a></code> and ArcGIS <code>Shape_Area</code>. It previously used the <code><a href="https://rspatial.github.io/terra/reference/expanse.html" class="external-link">terra::expanse()</a></code> default, which reprojects to lon/lat and returns geodesic area – 2.8% larger in Canada Atlas Lambert at BC latitudes, enough to move features across the threshold. Equal-area projections (e.g. BC Albers) are unaffected.</li>
+<li>
+<code><a href="../reference/expanse_planar.html">expanse_planar()</a></code> for planar area in a layer’s own projection, as <code><a href="https://r-spatial.github.io/sf/reference/geos_measures.html" class="external-link">sf::st_area()</a></code> and ArcGIS <code>Shape_Area</code> report it, guarding against the geodesic <code><a href="https://rspatial.github.io/terra/reference/expanse.html" class="external-link">terra::expanse()</a></code> default.</li>
+<li>
+<code><a href="../reference/nn_distance.html">nn_distance()</a></code> for the distance from every feature to its nearest neighbour, via one indexed candidate query per round over an escalating search radius rather than a per-feature <code><a href="https://r-spatial.github.io/sf/reference/st_nearest_feature.html" class="external-link">sf::st_nearest_feature()</a></code> call. About 14x faster on a 70,000-polygon layer (1.72 s to 0.12 s per polygon), and exact.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9012" id="spatialutils-0009012">spatialutils 0.0.0.9012<a class="anchor" aria-label="anchor" href="#spatialutils-0009012"></a></h2>
 <ul><li>
