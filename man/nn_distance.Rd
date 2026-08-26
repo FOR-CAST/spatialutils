@@ -4,7 +4,12 @@
 \alias{nn_distance}
 \title{Distance from each feature to its nearest neighbour}
 \usage{
-nn_distance(x, y = NULL, radii = c(0, 250, 1000, 4000, 16000, 64000))
+nn_distance(
+  x,
+  y = NULL,
+  exclude = NULL,
+  radii = c(0, 250, 1000, 4000, 16000, 64000)
+)
 }
 \arguments{
 \item{x}{A \code{SpatVector}, or an object coercible to one via \code{\link[terra:vect]{terra::vect()}}.}
@@ -13,6 +18,14 @@ nn_distance(x, y = NULL, radii = c(0, 250, 1000, 4000, 16000, 64000))
 default), distances are measured within \code{x}, excluding each feature from
 its own candidate set.}
 
+\item{exclude}{Optional integer vector, one element per feature of \code{x},
+giving the row of \code{y} that feature must not match (\code{NA} to exclude
+nothing). Use this when \code{x} is a \emph{subset} of \code{y} -- measuring one chunk of
+a layer against the whole layer, so that chunks can be computed in
+parallel -- since otherwise every feature finds itself at distance 0.
+Defaults to \code{seq_len(nrow(x))} when \code{y} is \code{NULL}, and to no exclusion
+otherwise.}
+
 \item{radii}{Numeric vector of search radii in map units, smallest first. The
 default steps from touching (\code{0}) up by factors of four. A final radius
 spanning the whole extent is always appended, so the search cannot run out
@@ -20,8 +33,8 @@ of rounds while a neighbour still exists.}
 }
 \value{
 A numeric vector of distances, one per feature of \code{x}, in map units.
-\code{NA} for a feature with no neighbour at all (only possible when \code{x} has a
-single feature and \code{y} is \code{NULL}, or \code{y} is empty).
+\code{NA} for a feature with no neighbour at all -- when \code{y} is empty, or when
+the only candidate was the feature itself.
 }
 \description{
 Exact distance from every feature of \code{x} to the nearest feature of \code{y} --
@@ -61,6 +74,10 @@ squares <- terra::vect(c(
 ))
 terra::crs(squares) <- "EPSG:3005"
 nn_distance(squares)
+
+## one chunk of a layer, measured against the whole layer
+rows <- 1:2
+nn_distance(squares[rows, ], squares, exclude = rows)
 }
 \seealso{
 Other SpatVector helpers:

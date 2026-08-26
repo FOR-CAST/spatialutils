@@ -1,3 +1,10 @@
+# spatialutils (development version)
+
+* `nn_distance()` gains an `exclude` argument, giving the row of `y` that each feature of `x` must
+  not match. This is what lets a *chunk* of a layer be measured against the whole layer -- and
+  therefore what lets the chunks run in parallel -- since otherwise every feature of the subset
+  finds itself at distance 0. Defaults to the previous self-exclusion behaviour.
+
 # spatialutils 0.0.0.9013
 
 * `dissolve_by()` to dissolve a vector layer on one or more attributes, keeping `NA` as a group of

@@ -75,3 +75,33 @@ test_that("degenerate inputs give NA rather than an error", {
   expect_equal(nn_distance(one, one[0, ]), NA_real_)
   expect_equal(nn_distance(one[0, ]), numeric(0))
 })
+
+test_that("`exclude` lets a chunk be measured against the whole layer", {
+  v <- nn_fixture()
+  whole <- nn_distance(v)
+
+  ## split into chunks, each measured against the full layer
+  chunks <- list(1:2, 3:4)
+  chunked <- unlist(lapply(chunks, function(rows) {
+    nn_distance(v[rows, ], v, exclude = rows)
+  }))
+
+  expect_equal(chunked, whole)
+})
+
+test_that("without `exclude`, a subset finds itself at distance 0", {
+  v <- nn_fixture()
+
+  expect_equal(nn_distance(v[1:2, ], v), c(0, 0))
+})
+
+test_that("`exclude` accepts NA for features that should not be excluded", {
+  v <- nn_fixture()
+
+  expect_equal(nn_distance(v[1:2, ], v, exclude = c(1L, NA)), c(200, 0))
+})
+
+test_that("`exclude` of the wrong length is rejected", {
+  v <- nn_fixture()
+  expect_snapshot(nn_distance(v, v, exclude = 1L), error = TRUE)
+})

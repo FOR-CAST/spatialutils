@@ -31,14 +31,21 @@
 #' @param y Optional `SpatVector` to measure distances to. When `NULL` (the
 #'   default), distances are measured within `x`, excluding each feature from
 #'   its own candidate set.
+#' @param exclude Optional integer vector, one element per feature of `x`,
+#'   giving the row of `y` that feature must not match (`NA` to exclude
+#'   nothing). Use this when `x` is a *subset* of `y` -- measuring one chunk of
+#'   a layer against the whole layer, so that chunks can be computed in
+#'   parallel -- since otherwise every feature finds itself at distance 0.
+#'   Defaults to `seq_len(nrow(x))` when `y` is `NULL`, and to no exclusion
+#'   otherwise.
 #' @param radii Numeric vector of search radii in map units, smallest first. The
 #'   default steps from touching (`0`) up by factors of four. A final radius
 #'   spanning the whole extent is always appended, so the search cannot run out
 #'   of rounds while a neighbour still exists.
 #'
 #' @return A numeric vector of distances, one per feature of `x`, in map units.
-#'   `NA` for a feature with no neighbour at all (only possible when `x` has a
-#'   single feature and `y` is `NULL`, or `y` is empty).
+#'   `NA` for a feature with no neighbour at all -- when `y` is empty, or when
+#'   the only candidate was the feature itself.
 #'
 #' @family SpatVector helpers
 #' @export
@@ -51,21 +58,34 @@
 #' ))
 #' terra::crs(squares) <- "EPSG:3005"
 #' nn_distance(squares)
-nn_distance <- function(x, y = NULL, radii = c(0, 250, 1000, 4000, 16000, 64000)) {
+#'
+#' ## one chunk of a layer, measured against the whole layer
+#' rows <- 1:2
+#' nn_distance(squares[rows, ], squares, exclude = rows)
+nn_distance <- function(x, y = NULL, exclude = NULL, radii = c(0, 250, 1000, 4000, 16000, 64000)) {
   if (!inherits(x, "SpatVector")) {
     x <- terra::vect(x)
   }
 
-  self <- is.null(y)
-  if (self) {
+  if (is.null(y)) {
+    if (is.null(exclude)) {
+      exclude <- seq_len(nrow(x))
+    }
     y <- x
   } else if (!inherits(y, "SpatVector")) {
     y <- terra::vect(y)
   }
 
+  if (!is.null(exclude)) {
+    if (length(exclude) != nrow(x)) {
+      stop("`exclude` must have one element per feature of `x`")
+    }
+    exclude <- as.integer(exclude)
+  }
+
   out <- rep(NA_real_, nrow(x))
 
-  if (nrow(x) == 0L || nrow(y) == 0L || (self && nrow(x) < 2L)) {
+  if (nrow(x) == 0L || nrow(y) == 0L) {
     return(out)
   }
 
@@ -86,9 +106,11 @@ nn_distance <- function(x, y = NULL, radii = c(0, 250, 1000, 4000, 16000, 64000)
     query <- if (radius > 0) terra::buffer(x[todo, ], width = radius) else x[todo, ]
     candidates <- terra::relate(query, y, "intersects", pairs = TRUE)
 
-    if (nrow(candidates) > 0L && self) {
+    if (nrow(candidates) > 0L && !is.null(exclude)) {
       ## a feature is not its own neighbour
-      candidates <- candidates[todo[candidates[, 1]] != candidates[, 2], , drop = FALSE]
+      excluded <- exclude[todo[candidates[, 1]]]
+      keep <- is.na(excluded) | excluded != candidates[, 2]
+      candidates <- candidates[keep, , drop = FALSE]
     }
 
     if (nrow(candidates) > 0L) {
