@@ -37,7 +37,10 @@ expected, so areas and border lengths are metric; warns otherwise.}
 
 \item{threshold}{sliver-area cutoff. Either a \pkg{units} object (e.g.
 \code{units::set_units(1, "ha")}) or a bare numeric in square metres. Polygons
-with area \verb{<= threshold} are candidate slivers.}
+with area \verb{<= threshold} are candidate slivers. Areas are \strong{planar}, in
+the layer's own projection (as \code{\link[sf:st_area]{sf::st_area()}} and ArcGIS \code{Shape_Area}
+report them), not the geodesic areas \code{\link[terra:expanse]{terra::expanse()}} returns by
+default; the two differ in any projection that is not equal-area.}
 
 \item{keep}{optional <\code{\link[rlang:args_data_masking]{data-masking}}> predicate
 evaluated against \code{x}'s attribute table; features for which it is \code{TRUE}

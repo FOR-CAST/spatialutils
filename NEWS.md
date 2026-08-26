@@ -1,3 +1,11 @@
+# spatialutils 0.0.0.9013
+
+* `eliminate_slivers()` now thresholds on **planar** area in the layer's own projection, matching
+  `sf::st_area()` and ArcGIS `Shape_Area`. It previously used the `terra::expanse()` default, which
+  reprojects to lon/lat and returns geodesic area -- 2.8% larger in Canada Atlas Lambert at BC
+  latitudes, enough to move features across the threshold. Equal-area projections (e.g. BC Albers)
+  are unaffected.
+
 # spatialutils 0.0.0.9012
 
 * `repair_geoms` to fix invalid geometries efficiently: validate once and run

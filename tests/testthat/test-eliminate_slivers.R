@@ -94,3 +94,29 @@ test_that("non-polygon input is rejected", {
   )
   expect_snapshot(eliminate_slivers(pts, threshold = 1), error = TRUE)
 })
+
+test_that("the threshold uses planar area, not geodesic area", {
+  ## Canada Atlas Lambert is conformal, not equal-area: at BC latitudes a 100 m square measures
+  ## 10,000 m^2 planar but ~10,279 m^2 geodesic. A threshold between the two must treat the square
+  ## as a sliver (planar) rather than keeping it (geodesic).
+  lcc_sq <- function(x0, y0, w, h, id) {
+    p <- sf::st_polygon(list(rbind(
+      c(x0, y0),
+      c(x0 + w, y0),
+      c(x0 + w, y0 + h),
+      c(x0, y0 + h),
+      c(x0, y0)
+    )))
+    sf::st_sf(id = id, geometry = sf::st_sfc(p, crs = 3979))
+  }
+  fx <- rbind(
+    lcc_sq(-1800000, 850000, 1000, 1000, "A"), ## keeper
+    lcc_sq(-1800000, 851000, 100, 100, "S") ## sliver, planar 10,000 m^2
+  )
+
+  expect_equal(as.numeric(sf::st_area(fx[fx$id == "S", ])), 10000)
+  expect_gt(terra::expanse(terra::vect(fx[fx$id == "S", ]), unit = "m"), 10100)
+
+  ## threshold sits between the planar and geodesic areas
+  expect_setequal(eliminate_slivers(fx, threshold = 10050)$id, "A")
+})

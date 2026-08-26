@@ -27,7 +27,10 @@
 #'
 #' @param threshold sliver-area cutoff. Either a \pkg{units} object (e.g.
 #'   `units::set_units(1, "ha")`) or a bare numeric in square metres. Polygons
-#'   with area `<= threshold` are candidate slivers.
+#'   with area `<= threshold` are candidate slivers. Areas are **planar**, in
+#'   the layer's own projection (as [sf::st_area()] and ArcGIS `Shape_Area`
+#'   report them), not the geodesic areas [terra::expanse()] returns by
+#'   default; the two differ in any projection that is not equal-area.
 #'
 #' @param keep optional <[`data-masking`][rlang::args_data_masking]> predicate
 #'   evaluated against `x`'s attribute table; features for which it is `TRUE`
@@ -123,7 +126,13 @@ eliminate_slivers <- function(
   } else {
     as.numeric(threshold)
   }
-  is_small <- terra::expanse(v, unit = "m") <= thr_m2
+  ## `transform = FALSE` keeps this a PLANAR area in the layer's own projection, matching
+  ## `sf::st_area()` and ArcGIS `Shape_Area` (which is what `Eliminate` thresholds on). The
+  ## `terra::expanse()` default reprojects to lon/lat and returns *geodesic* area, which differs
+  ## from planar area in any projection that is not equal-area -- 2.8% in Canada Atlas Lambert at
+  ## BC latitudes, enough to move features across the threshold. (`terra` ignores `transform` for
+  ## lon/lat data, which is always geodesic.)
+  is_small <- terra::expanse(v, unit = "m", transform = FALSE) <= thr_m2
 
   ## features the caller wants to protect, via a data-masking predicate on the attributes
   keep_q <- rlang::enquo(keep)
