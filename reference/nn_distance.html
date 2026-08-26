@@ -18,7 +18,7 @@ or, when y is NULL, to the nearest other feature of x."><!-- mathjax --><script 
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spatialutils</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9013</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9014</span>
       </span>
     </div>
 
@@ -55,7 +55,12 @@ or, when <code>y</code> is <code>NULL</code>, to the nearest <em>other</em> feat
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">nn_distance</span><span class="op">(</span><span class="va">x</span>, y <span class="op">=</span> <span class="cn">NULL</span>, radii <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">250</span>, <span class="fl">1000</span>, <span class="fl">4000</span>, <span class="fl">16000</span>, <span class="fl">64000</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">nn_distance</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  exclude <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  radii <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">250</span>, <span class="fl">1000</span>, <span class="fl">4000</span>, <span class="fl">16000</span>, <span class="fl">64000</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -72,6 +77,16 @@ default), distances are measured within <code>x</code>, excluding each feature f
 its own candidate set.</p></dd>
 
 
+<dt id="arg-exclude">exclude<a class="anchor" aria-label="anchor" href="#arg-exclude"></a></dt>
+<dd><p>Optional integer vector, one element per feature of <code>x</code>,
+giving the row of <code>y</code> that feature must not match (<code>NA</code> to exclude
+nothing). Use this when <code>x</code> is a <em>subset</em> of <code>y</code> – measuring one chunk of
+a layer against the whole layer, so that chunks can be computed in
+parallel – since otherwise every feature finds itself at distance 0.
+Defaults to <code>seq_len(nrow(x))</code> when <code>y</code> is <code>NULL</code>, and to no exclusion
+otherwise.</p></dd>
+
+
 <dt id="arg-radii">radii<a class="anchor" aria-label="anchor" href="#arg-radii"></a></dt>
 <dd><p>Numeric vector of search radii in map units, smallest first. The
 default steps from touching (<code>0</code>) up by factors of four. A final radius
@@ -82,8 +97,8 @@ of rounds while a neighbour still exists.</p></dd>
     <div id="value">
     <h2>Value</h2>
     <p>A numeric vector of distances, one per feature of <code>x</code>, in map units.
-<code>NA</code> for a feature with no neighbour at all (only possible when <code>x</code> has a
-single feature and <code>y</code> is <code>NULL</code>, or <code>y</code> is empty).</p>
+<code>NA</code> for a feature with no neighbour at all – when <code>y</code> is empty, or when
+the only candidate was the feature itself.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -124,6 +139,11 @@ rest fall through to the next, larger round.</p>
 <span class="r-in"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">squares</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"EPSG:3005"</span></span></span>
 <span class="r-in"><span><span class="fu">nn_distance</span><span class="op">(</span><span class="va">squares</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 200 200 200</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## one chunk of a layer, measured against the whole layer</span></span></span>
+<span class="r-in"><span><span class="va">rows</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span></span></span>
+<span class="r-in"><span><span class="fu">nn_distance</span><span class="op">(</span><span class="va">squares</span><span class="op">[</span><span class="va">rows</span>, <span class="op">]</span>, <span class="va">squares</span>, exclude <span class="op">=</span> <span class="va">rows</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 200 200</span>
 </code></pre></div>
     </div>
   </div>

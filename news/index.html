@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spatialutils</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9013</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9014</span>
       </span>
     </div>
 
@@ -47,6 +47,11 @@
       <small>Source: <a href="https://github.com/FOR-CAST/spatialutils/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="development version" id="spatialutils-development-version">spatialutils (development version)<a class="anchor" aria-label="anchor" href="#spatialutils-development-version"></a></h2>
+<ul><li>
+<code><a href="../reference/nn_distance.html">nn_distance()</a></code> gains an <code>exclude</code> argument, giving the row of <code>y</code> that each feature of <code>x</code> must not match. This is what lets a <em>chunk</em> of a layer be measured against the whole layer – and therefore what lets the chunks run in parallel – since otherwise every feature of the subset finds itself at distance 0. Defaults to the previous self-exclusion behaviour.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9013" id="spatialutils-0009013">spatialutils 0.0.0.9013<a class="anchor" aria-label="anchor" href="#spatialutils-0009013"></a></h2>
 <ul><li>
