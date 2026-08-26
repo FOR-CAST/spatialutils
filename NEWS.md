@@ -1,10 +1,22 @@
 # spatialutils 0.0.0.9013
 
+* `dissolve_by()` to dissolve a vector layer on one or more attributes, keeping `NA` as a group of
+  its own. `terra::aggregate(by = )` cannot dissolve on several columns when any of them contains
+  `NA`: it returns a `SpatVector` whose attribute table has fewer rows than it has geometries, which
+  then errors on the next access rather than at the aggregate call.
+* `drop_values()` to strip every attribute from a `SpatVector` while keeping its geometries --
+  `x[, character(0)]` is an error in `terra`, and `x$col <- NULL` has to be repeated per column.
 * `eliminate_slivers()` now thresholds on **planar** area in the layer's own projection, matching
   `sf::st_area()` and ArcGIS `Shape_Area`. It previously used the `terra::expanse()` default, which
   reprojects to lon/lat and returns geodesic area -- 2.8% larger in Canada Atlas Lambert at BC
   latitudes, enough to move features across the threshold. Equal-area projections (e.g. BC Albers)
   are unaffected.
+* `expanse_planar()` for planar area in a layer's own projection, as `sf::st_area()` and ArcGIS
+  `Shape_Area` report it, guarding against the geodesic `terra::expanse()` default.
+* `nn_distance()` for the distance from every feature to its nearest neighbour, via one indexed
+  candidate query per round over an escalating search radius rather than a per-feature
+  `sf::st_nearest_feature()` call. About 14x faster on a 70,000-polygon layer (1.72 s to 0.12 s per
+  polygon), and exact.
 
 # spatialutils 0.0.0.9012
 
