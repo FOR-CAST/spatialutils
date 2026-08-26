@@ -1,5 +1,15 @@
 # spatialutils (development version)
 
+* `intersect_clean()` now **merges** each sliver into the neighbouring polygon it shares the longest
+  border with, instead of discarding it with `smoothr::drop_crumbs()`. Dropping meant the result no
+  longer covered the same footprint as the intersection and the area in the dropped fragments simply
+  vanished; merging is what the ArcGIS `Eliminate` tool does, and is why `eliminate_slivers()` was
+  written (#1). `smoothr` is no longer a dependency.
+* `read_vector_aoi()` no longer fails on a layer whose geometry type is "Unknown (any)" -- what
+  `sf::st_write()` produces for mixed POLYGON/MULTIPOLYGON, and very common in GeoPackages. terra's
+  *proxy* reader rejects such a layer outright, which aborted the read; a failed proxy now falls
+  back to the ordinary filtered read, which handles it.
+
 * `nn_distance()` gains an `exclude` argument, giving the row of `y` that each feature of `x` must
   not match. This is what lets a *chunk* of a layer be measured against the whole layer -- and
   therefore what lets the chunks run in parallel -- since otherwise every feature of the subset

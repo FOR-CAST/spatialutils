@@ -10,8 +10,5 @@
 #'
 #' @export
 outerBuffer <- function(x, d = 0) {
-  x |>
-    sf::st_union() |>
-    sf::st_buffer(d) |>
-    sf::st_convex_hull()
+  x |> sf::st_union() |> sf::st_buffer(d) |> sf::st_convex_hull()
 }

@@ -1,44 +1,88 @@
-#' Intersect and cleanup crumbs
+#' Intersect two polygon layers and absorb the resulting slivers
 #'
-#' Useful in cases where two sets of polygons do not align perfectly spatially.
-#' Thus, intersecting produces slivers that are larger than can typically
-#' be easily dealt with (e.g., <https://github.com/r-spatial/sf/issues/547>).
+#' Useful where two sets of polygons do not align perfectly: intersecting them
+#' leaves slivers along every mismatched boundary
+#' (<https://github.com/r-spatial/sf/issues/547>), carrying attribute
+#' combinations that are artefacts of the misalignment rather than real.
 #'
-#' In these cases, deal with each of the set of features individually:
-#' 1. Identify the feature sets of interest in `x` using the unique values of `x[[xcol]]`
-#'    (i.e., sets of polygons that share an identifier);
-#' 2. For each of the feature sets, calculate the area of the smallest feature in that set;
-#' 3. For each of the feature sets, perform intersection with `y` and ensure validity;
-#' 4. Post-intersection, remove any fragment polygons smaller than `areaThresh * min(area)`.
+#' Each sliver is **merged into the neighbouring polygon it shares the longest
+#' border with** (see [eliminate_slivers()]), so no area is lost and the sliver
+#' takes the attributes of a real neighbour.
+#'
+#' Slivers are judged, and absorbed, within each feature set separately:
+#'
+#' 1. identify the feature sets in `x` from the unique values of `x[[xcol]]`;
+#' 2. for each set, take the area of its smallest feature in `x`;
+#' 3. intersect with `y` and repair the result;
+#' 4. within each set, treat any fragment smaller than
+#'    `areaThresh * min(area)` as a sliver and merge it into its
+#'    longest-shared-border neighbour **in that same set**.
+#'
+#' Keeping the merge within a set is what repairs the misalignment: a sliver of
+#' set `A` carrying the wrong `y` attributes is absorbed by the main body of
+#' `A`, which carries the right ones.
+#'
+#' @section Changed behaviour:
+#' This previously *discarded* slivers via `smoothr::drop_crumbs()`, so the
+#' result no longer covered the same footprint as the intersection and the area
+#' in the dropped fragments simply vanished. Merging is the geometrically
+#' sensible treatment and is what the ArcGIS `Eliminate` tool does.
 #'
 #' @param x,y `sf` polygons object
 #' @param xcol character, name of the attribute column in `x` to use to identify features
-#' @param areaThresh numeric, *proportion* of minimum polygon area to use as threshold crumb size.
+#' @param areaThresh numeric, *proportion* of minimum polygon area to use as threshold sliver size.
 #'
-#' @return `sf` polygons object
+#' @return `sf` polygons object covering the same area as `st_intersection(x, y)`
 #'
+#' @seealso [eliminate_slivers()], [intersect_relate()]
 #' @export
 intersect_clean <- function(x, y, xcol, areaThresh = 0.05) {
+  x <- sf::st_set_agr(x, "constant")
+  y <- sf::st_set_agr(y, "constant")
+
   xy <- sf::st_intersection(x, y) |> sf::st_make_valid()
+
+  ## only reshape when there is something to reshape -- `st_collection_extract()` and `st_cast()`
+  ## both warn when asked to do nothing
+  geom_types <- unique(as.character(sf::st_geometry_type(xy)))
+
+  if ("GEOMETRYCOLLECTION" %in% geom_types) {
+    xy <- sf::st_collection_extract(xy, "POLYGON")
+    geom_types <- unique(as.character(sf::st_geometry_type(xy)))
+  }
+  if ("MULTIPOLYGON" %in% geom_types) {
+    xy <- sf::st_cast(xy, "POLYGON", warn = FALSE)
+  }
+
   names.x <- unique(xy[[xcol]])
-  areas.x <- lapply(names.x, function(p) {
-    sf::st_area(x[x[[xcol]] == p, ])
-  })
-  names(areas.x) <- names.x
 
-  z <- lapply(
+  ## sliver cutoff per feature set: a proportion of the smallest feature of that set in `x`
+  thresholds <- vapply(
     names.x,
-    function(p, polys, areas) {
-      polys[polys[[xcol]] == p, ] |>
-        sf::st_collection_extract("POLYGON") |>
-        smoothr::drop_crumbs(areaThresh * min(areas[[p]])) |>
-        sf::st_make_valid()
-    },
-    polys = xy,
-    areas = areas.x
+    function(p) min(as.numeric(sf::st_area(x[x[[xcol]] == p, ]))) * areaThresh,
+    numeric(1)
   )
-  z <- do.call(rbind, z)
-  z <- z[!sf::st_is_empty(z), ]
 
-  return(z)
+  z <- lapply(names.x, function(p) {
+    polys <- xy[xy[[xcol]] == p, ]
+
+    ## `eliminate_slivers()` takes a single threshold and its own `keep` predicate, so flag the
+    ## slivers here (against this set's threshold) and protect everything else.
+    polys[[".sliver"]] <- as.numeric(sf::st_area(polys)) <= thresholds[[p]]
+
+    merged <- eliminate_slivers(
+      polys,
+      threshold = Inf, ## every feature is a candidate; `keep` decides
+      keep = !.data$.sliver,
+      explode = FALSE ## already single-part
+    )
+
+    merged[[".sliver"]] <- NULL
+
+    merged
+  })
+
+  z <- do.call(rbind, z)
+
+  z[!sf::st_is_empty(z), ]
 }

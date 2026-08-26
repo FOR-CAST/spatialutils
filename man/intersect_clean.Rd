@@ -2,7 +2,7 @@
 % Please edit documentation in R/intersect_clean.R
 \name{intersect_clean}
 \alias{intersect_clean}
-\title{Intersect and cleanup crumbs}
+\title{Intersect two polygon layers and absorb the resulting slivers}
 \usage{
 intersect_clean(x, y, xcol, areaThresh = 0.05)
 }
@@ -11,23 +11,44 @@ intersect_clean(x, y, xcol, areaThresh = 0.05)
 
 \item{xcol}{character, name of the attribute column in \code{x} to use to identify features}
 
-\item{areaThresh}{numeric, \emph{proportion} of minimum polygon area to use as threshold crumb size.}
+\item{areaThresh}{numeric, \emph{proportion} of minimum polygon area to use as threshold sliver size.}
 }
 \value{
-\code{sf} polygons object
+\code{sf} polygons object covering the same area as \code{st_intersection(x, y)}
 }
 \description{
-Useful in cases where two sets of polygons do not align perfectly spatially.
-Thus, intersecting produces slivers that are larger than can typically
-be easily dealt with (e.g., \url{https://github.com/r-spatial/sf/issues/547}).
+Useful where two sets of polygons do not align perfectly: intersecting them
+leaves slivers along every mismatched boundary
+(\url{https://github.com/r-spatial/sf/issues/547}), carrying attribute
+combinations that are artefacts of the misalignment rather than real.
 }
 \details{
-In these cases, deal with each of the set of features individually:
+Each sliver is \strong{merged into the neighbouring polygon it shares the longest
+border with} (see \code{\link[=eliminate_slivers]{eliminate_slivers()}}), so no area is lost and the sliver
+takes the attributes of a real neighbour.
+
+Slivers are judged, and absorbed, within each feature set separately:
 \enumerate{
-\item Identify the feature sets of interest in \code{x} using the unique values of \code{x[[xcol]]}
-(i.e., sets of polygons that share an identifier);
-\item For each of the feature sets, calculate the area of the smallest feature in that set;
-\item For each of the feature sets, perform intersection with \code{y} and ensure validity;
-\item Post-intersection, remove any fragment polygons smaller than \code{areaThresh * min(area)}.
+\item identify the feature sets in \code{x} from the unique values of \code{x[[xcol]]};
+\item for each set, take the area of its smallest feature in \code{x};
+\item intersect with \code{y} and repair the result;
+\item within each set, treat any fragment smaller than
+\code{areaThresh * min(area)} as a sliver and merge it into its
+longest-shared-border neighbour \strong{in that same set}.
 }
+
+Keeping the merge within a set is what repairs the misalignment: a sliver of
+set \code{A} carrying the wrong \code{y} attributes is absorbed by the main body of
+\code{A}, which carries the right ones.
+}
+\section{Changed behaviour}{
+
+This previously \emph{discarded} slivers via \code{smoothr::drop_crumbs()}, so the
+result no longer covered the same footprint as the intersection and the area
+in the dropped fragments simply vanished. Merging is the geometrically
+sensible treatment and is what the ArcGIS \code{Eliminate} tool does.
+}
+
+\seealso{
+\code{\link[=eliminate_slivers]{eliminate_slivers()}}, \code{\link[=intersect_relate]{intersect_relate()}}
 }

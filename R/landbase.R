@@ -1,3 +1,26 @@
+## CRS of a vector source, without reading any geometries. Uses the proxy when there is one;
+## otherwise asks GDAL for the layer metadata, which works for layers a proxy cannot open.
+source_crs <- function(src, layer = "", proxy = NULL) {
+  if (!is.null(proxy)) {
+    return(terra::crs(proxy))
+  }
+
+  layers <- sf::st_layers(src)
+  idx <- if (nzchar(layer)) match(layer, layers$name) else 1L
+
+  if (is.na(idx)) {
+    stop("layer \"", layer, "\" not found in ", src)
+  }
+
+  crs <- layers$crs[[idx]]
+
+  if (is.na(sf::st_crs(crs))) {
+    stop("could not determine the CRS of ", src)
+  }
+
+  sf::st_crs(crs)$wkt
+}
+
 #' Read a vector layer, filtered to an area of interest
 #'
 #' Read a (potentially very large) vector source while pushing the spatial
@@ -60,34 +83,46 @@ read_vector_aoi <- function(src, aoi, fields = NULL, layer = NULL, relation = "i
     aoiSrc <- terra::project(aoi1, v)
   } else {
     lyr <- if (is.null(layer)) "" else layer
-    proxy <- terra::vect(src, layer = lyr, proxy = TRUE)
-    aoiSrc <- terra::project(aoi1, terra::crs(proxy))
+
+    ## A layer holding a MIX of POLYGON and MULTIPOLYGON geometries -- which is what
+    ## `sf::st_write()` produces, and very common in GeoPackages -- is declared with geometry type
+    ## "Unknown (any)", and terra's *proxy* reader rejects that outright ("cannot read this geometry
+    ## type"). The ordinary filtered read handles it, so treat a failed proxy as one more reason to
+    ## take the fallback path rather than letting it abort the read.
+    proxy <- tryCatch(terra::vect(src, layer = lyr, proxy = TRUE), error = function(e) NULL)
+
+    aoiSrc <- terra::project(aoi1, source_crs(src, lyr, proxy))
 
     ## Push BOTH the column selection and the spatial filter down to the read.
     ## Some drivers (e.g. GeoPackage) drop the geometry field when specific
     ## columns are selected, which disables the spatial filter (a GDAL warning);
     ## detect that and fall back to a spatial-filter-only read (geometry always
     ## present), subsetting the columns in R afterwards.
-    pushOK <- TRUE
-    v <- withCallingHandlers(
-      tryCatch(
-        if (is.null(fields)) {
-          terra::query(proxy, filter = aoiSrc)
-        } else {
-          terra::query(proxy, vars = fields, filter = aoiSrc)
-        },
-        error = function(e) {
-          pushOK <<- FALSE
-          NULL
+    pushOK <- !is.null(proxy)
+    v <- NULL
+
+    if (pushOK) {
+      v <- withCallingHandlers(
+        tryCatch(
+          if (is.null(fields)) {
+            terra::query(proxy, filter = aoiSrc)
+          } else {
+            terra::query(proxy, vars = fields, filter = aoiSrc)
+          },
+          error = function(e) {
+            pushOK <<- FALSE
+            NULL
+          }
+        ),
+        warning = function(w) {
+          if (grepl("geometry field|spatial filter", conditionMessage(w), ignore.case = TRUE)) {
+            pushOK <<- FALSE
+            invokeRestart("muffleWarning")
+          }
         }
-      ),
-      warning = function(w) {
-        if (grepl("geometry field|spatial filter", conditionMessage(w), ignore.case = TRUE)) {
-          pushOK <<- FALSE
-          invokeRestart("muffleWarning")
-        }
-      }
-    )
+      )
+    }
+
     if (!isTRUE(pushOK) || is.null(v)) {
       v <- terra::vect(src, layer = lyr, filter = aoiSrc)
     }
@@ -223,8 +258,12 @@ prep_landbase <- function(
   v <- read_vector_aoi(src, aoi, fields = status_col, layer = layer)
   if (!status_col %in% names(v)) {
     stop(
-      "`status_col` \"", status_col, "\" not found in the source layer; ",
-      "available columns: ", paste(names(v), collapse = ", "), ".",
+      "`status_col` \"",
+      status_col,
+      "\" not found in the source layer; ",
+      "available columns: ",
+      paste(names(v), collapse = ", "),
+      ".",
       call. = FALSE
     )
   }

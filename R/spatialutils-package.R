@@ -19,6 +19,5 @@
 #' @importFrom sf st_make_valid
 #' @importFrom sf st_set_geometry
 #' @importFrom sf st_union
-#' @importFrom smoothr drop_crumbs
 ## usethis namespace: end
 NULL
