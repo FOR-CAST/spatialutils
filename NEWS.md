@@ -1,5 +1,27 @@
 # spatialutils (development version)
 
+* `erase_polygons()` takes the difference of two `SpatVector` polygon layers, keeping `x`'s
+  attributes. `terra::erase()` can return a `SpatVector` carrying one more attribute row than it has
+  geometries -- it drops a geometry whose difference comes out empty without dropping the matching
+  attribute row -- and nothing complains until something else reads the attributes, a long way from
+  the cause (<https://github.com/rspatial/terra/issues/2179>). Going through `sf` cannot
+  desynchronise, because the attributes are columns of the same data frame as the geometry.
+* `intersect_clean()` no longer fails when the intersection contains a bare `LINESTRING`. Two
+  polygons that share only an edge intersect in a line, with no `GEOMETRYCOLLECTION` anywhere in the
+  result, so the guard testing only for collections never fired and `st_cast()` then aborted with
+  "`x` must contain polygon geometries, not lines".
+* `intersect_clean()` no longer fails when the intersection is empty -- layers that only touch, or
+  do not meet at all. It returned an empty `sf` object through `do.call(rbind, list())`, which is
+  `NULL`, and failed on the next line instead.
+* `keep_polygons()` keeps only the non-empty polygonal features of an `sf` object, extracting them
+  from any `GEOMETRYCOLLECTION` first. Testing for `GEOMETRYCOLLECTION` alone is not enough: an
+  overlay can leave a bare `LINESTRING` sitting directly in the geometry column, and `terra::vect()`
+  then drops that geometry while keeping its attribute row.
+* `overlay_left_join()` tags one polygon layer with another's attributes as an overlay, preserving
+  the left layer's footprint exactly -- no area invented, none lost, and none counted twice.
+  `sf::st_join()` is not an overlay: it keeps whole geometries from `x` and emits one copy per
+  feature of `y` they touch.
+
 * `intersect_clean()` now **merges** each sliver into the neighbouring polygon it shares the longest
   border with, instead of discarding it with `smoothr::drop_crumbs()`. Dropping meant the result no
   longer covered the same footprint as the intersection and the area in the dropped fragments simply

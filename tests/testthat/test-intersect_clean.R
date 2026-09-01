@@ -66,3 +66,54 @@ test_that("feature sets are cleaned independently", {
   expect_equal(nrow(out), 2L) ## one per set, each having absorbed its own sliver
   expect_equal(area_of(out), 2 * area_of(fx$x))
 })
+
+test_that("an intersection reduced to a line does not abort the call", {
+  ## Two polygons sharing only an edge intersect in a bare LINESTRING, with no GEOMETRYCOLLECTION
+  ## anywhere, so a guard testing only for collections never fires and `st_cast()` then fails with
+  ## "`x` must contain polygon geometries, not lines".
+  rect <- function(xmin, xmax, ymin, ymax) {
+    sf::st_polygon(list(rbind(
+      c(xmin, ymin),
+      c(xmax, ymin),
+      c(xmax, ymax),
+      c(xmin, ymax),
+      c(xmin, ymin)
+    )))
+  }
+
+  x <- sf::st_sf(
+    id = c("A", "B"),
+    geometry = sf::st_sfc(rect(0, 10, 0, 10), rect(20, 30, 0, 10), crs = 3005)
+  )
+  y <- sf::st_sf(band = "main", geometry = sf::st_sfc(rect(10, 20, 0, 10), crs = 3005))
+
+  out <- intersect_clean(x, y, xcol = "id")
+
+  expect_s3_class(out, "sf")
+  expect_equal(nrow(out), 0L)
+})
+
+test_that("a partly-touching intersection keeps the overlapping area and drops the edge", {
+  ## "A" overlaps `y`; "B" only touches it along an edge. The touch contributes a line, which
+  ## carries no area and must not reach the sliver logic.
+  rect <- function(xmin, xmax, ymin, ymax) {
+    sf::st_polygon(list(rbind(
+      c(xmin, ymin),
+      c(xmax, ymin),
+      c(xmax, ymax),
+      c(xmin, ymax),
+      c(xmin, ymin)
+    )))
+  }
+
+  x <- sf::st_sf(
+    id = c("A", "B"),
+    geometry = sf::st_sfc(rect(0, 100, 0, 100), rect(200, 300, 0, 100), crs = 3005)
+  )
+  y <- sf::st_sf(band = "main", geometry = sf::st_sfc(rect(50, 200, 0, 100), crs = 3005))
+
+  out <- intersect_clean(x, y, xcol = "id")
+
+  expect_setequal(out$id, "A")
+  expect_equal(sum(as.numeric(sf::st_area(out))), 50 * 100, tolerance = 1e-9)
+})

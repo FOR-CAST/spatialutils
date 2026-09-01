@@ -40,18 +40,21 @@ intersect_clean <- function(x, y, xcol, areaThresh = 0.05) {
   x <- sf::st_set_agr(x, "constant")
   y <- sf::st_set_agr(y, "constant")
 
-  xy <- sf::st_intersection(x, y) |> sf::st_make_valid()
+  ## `keep_polygons()` rather than a GEOMETRYCOLLECTION test on its own: two polygons that share
+  ## only an edge intersect in a bare LINESTRING, with no collection anywhere in the result, and
+  ## `st_cast()` below then fails with "`x` must contain polygon geometries, not lines".
+  xy <- sf::st_intersection(x, y) |> sf::st_make_valid() |> keep_polygons()
 
-  ## only reshape when there is something to reshape -- `st_collection_extract()` and `st_cast()`
-  ## both warn when asked to do nothing
-  geom_types <- unique(as.character(sf::st_geometry_type(xy)))
-
-  if ("GEOMETRYCOLLECTION" %in% geom_types) {
-    xy <- sf::st_collection_extract(xy, "POLYGON")
-    geom_types <- unique(as.character(sf::st_geometry_type(xy)))
-  }
-  if ("MULTIPOLYGON" %in% geom_types) {
+  ## only reshape when there is something to reshape -- `st_cast()` warns when asked to do nothing
+  if (any(sf::st_geometry_type(xy) == "MULTIPOLYGON")) {
     xy <- sf::st_cast(xy, "POLYGON", warn = FALSE)
+  }
+
+  ## An intersection can come back with nothing in it: the layers only touch along an edge, or do
+  ## not meet at all. There is no set to judge slivers against, and `do.call(rbind, list())` is
+  ## NULL, which fails two lines further on rather than here.
+  if (nrow(xy) == 0L) {
+    return(xy)
   }
 
   names.x <- unique(xy[[xcol]])
