@@ -41,6 +41,21 @@ test_that("read_vector_aoi pushes the spatial filter down to a file read", {
   expect_identical(names(out), "status")
 })
 
+test_that("read_vector_aoi returns valid geometry when the source is invalid", {
+  ## A bowtie: the ring crosses itself, so GEOS reports a self-intersection. One of these in the
+  ## BC CEF Forest Disturbance layer aborted a pipeline branch with "TopologyException: side
+  ## location conflict", because the caller's first overlay ran before its own repair.
+  bowtie <- terra::vect("POLYGON ((0 0, 2 2, 2 0, 0 2, 0 0))", crs = "EPSG:3857")
+  expect_false(terra::is.valid(bowtie)) ## guards the fixture itself
+
+  aoi <- mk_square(-1, 3, -1, 3)
+  out <- read_vector_aoi(bowtie, aoi)
+
+  expect_true(all(terra::is.valid(out)))
+  ## and the caller's next overlay must not throw, which is the failure this prevents
+  expect_no_error(terra::crop(out, aoi))
+})
+
 test_that("read_vector_aoi returns an empty SpatVector when nothing overlaps", {
   aoi <- mk_square(0, 1, 0, 1)
   src <- mk_square(20, 21, 20, 21)

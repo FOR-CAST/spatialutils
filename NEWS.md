@@ -27,6 +27,12 @@
   longer covered the same footprint as the intersection and the area in the dropped fragments simply
   vanished; merging is what the ArcGIS `Eliminate` tool does, and is why `eliminate_slivers()` was
   written (#1). `smoothr` is no longer a dependency.
+* `read_vector_aoi()` now returns valid geometry. Source layers contain invalid features -- a single
+  self-intersecting polygon in the BC CEF Forest Disturbance layer was enough to abort a pipeline
+  branch with "TopologyException: side location conflict" -- and every GEOS overlay a caller reaches
+  for next (`crop()`, `intersect()`, `erase()`) throws on them. Repairing in the caller is not
+  sufficient, because the throw happens in whichever overlay runs first, which may be before the
+  caller's own repair. A clean layer pays one `terra::is.valid()` pass and nothing else.
 * `read_vector_aoi()` no longer fails on a layer whose geometry type is "Unknown (any)" -- what
   `sf::st_write()` produces for mixed POLYGON/MULTIPOLYGON, and very common in GeoPackages. terra's
   *proxy* reader rejects such a layer outright, which aborted the read; a failed proxy now falls

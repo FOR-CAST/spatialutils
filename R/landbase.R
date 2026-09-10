@@ -133,6 +133,19 @@ read_vector_aoi <- function(src, aoi, fields = NULL, layer = NULL, relation = "i
     v <- v[terra::is.related(v, aoiSrc, relation), ]
   }
 
+  ## Return VALID geometry. Source layers contain invalid features -- one self-intersecting polygon
+  ## in the BC CEF Forest Disturbance layer was enough to abort a whole pipeline branch with
+  ## "TopologyException: side location conflict" -- and every GEOS overlay a caller might reach for
+  ## next (`crop()`, `intersect()`, `erase()`) throws on them. Callers that repair defensively can
+  ## still be caught out, because the throw happens in whichever overlay runs FIRST, which may be
+  ## before their repair. Guaranteeing it here means a caller cannot receive geometry it cannot use.
+  ##
+  ## `repair_geoms()` only touches features that are actually invalid, so a clean layer pays one
+  ## `terra::is.valid()` pass and nothing else.
+  if (nrow(v) > 0L) {
+    v <- repair_geoms(v)
+  }
+
   ## guarantee only the requested columns (idempotent after the fallback path)
   if (!is.null(fields) && nrow(v) > 0L) {
     keep <- intersect(fields, names(v))
