@@ -24,20 +24,24 @@ export(repair_geoms)
 export(save_gpkg)
 export(spatial_join_intersects)
 export(st_union_analysis)
-importFrom(dplyr,.data)
-importFrom(dplyr,group_by)
-importFrom(dplyr,mutate)
-importFrom(dplyr,summarise)
+importFrom(dplyr,
+  .data,
+  group_by,
+  mutate,
+  summarise
+)
 importFrom(rlang,":=")
-importFrom(sf,st_area)
-importFrom(sf,st_as_sf)
-importFrom(sf,st_buffer)
-importFrom(sf,st_collection_extract)
-importFrom(sf,st_convex_hull)
-importFrom(sf,st_exterior_ring)
-importFrom(sf,st_intersection)
-importFrom(sf,st_intersects)
-importFrom(sf,st_is_empty)
-importFrom(sf,st_make_valid)
-importFrom(sf,st_set_geometry)
-importFrom(sf,st_union)
+importFrom(sf,
+  st_area,
+  st_as_sf,
+  st_buffer,
+  st_collection_extract,
+  st_convex_hull,
+  st_exterior_ring,
+  st_intersection,
+  st_intersects,
+  st_is_empty,
+  st_make_valid,
+  st_set_geometry,
+  st_union
+)
