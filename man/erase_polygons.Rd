@@ -2,9 +2,18 @@
 % Please edit documentation in R/erase_polygons.R
 \name{erase_polygons}
 \alias{erase_polygons}
+\alias{erase_polygons.sf}
+\alias{erase_polygons.SpatVector}
+\alias{erase_polygons_tiled}
 \title{Erase one polygon layer from another, keeping attributes aligned}
 \usage{
 erase_polygons(x, y)
+
+\method{erase_polygons}{sf}(x, y)
+
+\method{erase_polygons}{SpatVector}(x, y)
+
+erase_polygons_tiled(x, y, tiles)
 }
 \arguments{
 \item{x}{\code{SpatVector} polygons to erase from.}
@@ -13,6 +22,9 @@ erase_polygons(x, y)
 returned unchanged -- \code{sf::st_union()} of an empty layer is a zero-length
 geometry, and \code{sf::st_difference()} against that fails with a message that
 says nothing about the cause.}
+
+\item{tiles}{\code{SpatVector} or \code{sf} of tile polygons covering \code{x}. Reuse an existing grid where one
+exists -- see the note in \code{Details}.}
 }
 \value{
 \code{SpatVector} polygons carrying \code{x}'s attributes, always with exactly
@@ -22,6 +34,25 @@ when \code{y} covers \code{x} completely.
 \description{
 The part of \code{x} that lies outside \code{y}, keeping \code{x}'s attributes: every feature of \code{x} comes
 back with whatever part of it lies outside \code{y}.
+}
+\details{
+\code{erase_polygons_tiled()} is the same operation done tile by tile. It exists because the cost of a
+difference is superlinear in the complexity of \code{y}: when \code{y} is one large dissolved multipolygon,
+every feature of \code{x} pays for district-wide geometry no matter how small it is. Cropping both
+sides to a tile shrinks the \code{y} each difference sees.
+
+Measured on a 40,301-polygon layer differenced against a single 1.88 Mha multipolygon:
+11,157 s untiled against 201.8 s over 56 tiles, a 55.3x reduction, with identical output. On a
+second, larger study area the same change took a target from 27.6 h to 35 min (46.7x), again
+producing bit-identical geometry -- 32,305 features and 513,509.0693 ha either way.
+
+It is not always a win. Tiling adds a crop per tile, so it pays only when \code{y} is complex enough
+that shrinking it saves more than the crops cost. Measure before adopting it.
+
+Geometries crossing a tile seam come back SPLIT. Dissolve after this returns, never per tile, if
+they need rejoining -- a dissolve that sees only one half of a split feature cannot rejoin it.
+Reuse an existing grid where the layer was built on one: it already carries vertices lying
+exactly on those seam coordinates, so re-cutting adds no new vertices and the halves abut exactly.
 }
 \section{Why this goes through sf rather than terra}{
 

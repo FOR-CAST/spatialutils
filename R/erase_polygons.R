@@ -35,12 +35,31 @@
 #' @seealso [keep_polygons()], [overlay_left_join()]
 #' @export
 erase_polygons <- function(x, y) {
+  UseMethod("erase_polygons")
+}
+
+#' @rdname erase_polygons
+#' @export
+erase_polygons.sf <- function(x, y) {
+  if (!inherits(y, "sf")) {
+    y <- sf::st_as_sf(y)
+  }
+
   if (nrow(y) == 0L) {
     return(x)
   }
 
-  d <- suppressWarnings(sf::st_difference(sf::st_as_sf(x), sf::st_union(sf::st_as_sf(y)))) |>
-    keep_polygons()
+  suppressWarnings(sf::st_difference(x, sf::st_union(y))) |> keep_polygons()
+}
+
+#' @rdname erase_polygons
+#' @export
+erase_polygons.SpatVector <- function(x, y) {
+  if (nrow(y) == 0L) {
+    return(x)
+  }
+
+  d <- erase_polygons(sf::st_as_sf(x), sf::st_as_sf(y))
 
   ## `[` keeps the columns, where `terra::crop()` would drop them, and
   ## `terra::vect()` warns on an empty `sf`.
@@ -65,4 +84,38 @@ assert_synced <- function(v, what) {
   }
 
   v
+}
+
+#' @param tiles `SpatVector` or `sf` of tile polygons covering `x`. Reuse an existing grid where one
+#'   exists -- see the note in `Details`.
+#'
+#' @details
+#' `erase_polygons_tiled()` is the same operation done tile by tile. It exists because the cost of a
+#' difference is superlinear in the complexity of `y`: when `y` is one large dissolved multipolygon,
+#' every feature of `x` pays for district-wide geometry no matter how small it is. Cropping both
+#' sides to a tile shrinks the `y` each difference sees.
+#'
+#' Measured on a 40,301-polygon layer differenced against a single 1.88 Mha multipolygon:
+#' 11,157 s untiled against 201.8 s over 56 tiles, a 55.3x reduction, with identical output. On a
+#' second, larger study area the same change took a target from 27.6 h to 35 min (46.7x), again
+#' producing bit-identical geometry -- 32,305 features and 513,509.0693 ha either way.
+#'
+#' It is not always a win. Tiling adds a crop per tile, so it pays only when `y` is complex enough
+#' that shrinking it saves more than the crops cost. Measure before adopting it.
+#'
+#' Geometries crossing a tile seam come back SPLIT. Dissolve after this returns, never per tile, if
+#' they need rejoining -- a dissolve that sees only one half of a split feature cannot rejoin it.
+#' Reuse an existing grid where the layer was built on one: it already carries vertices lying
+#' exactly on those seam coordinates, so re-cutting adds no new vertices and the halves abut exactly.
+#'
+#' @rdname erase_polygons
+#' @export
+erase_polygons_tiled <- function(x, y, tiles) {
+  if (nrow(y) == 0L) {
+    return(x)
+  }
+
+  overlay_tiled(x, y, tiles, function(xi, yi) {
+    if (nrow(yi) == 0L) xi else erase_polygons(xi, yi)
+  })
 }

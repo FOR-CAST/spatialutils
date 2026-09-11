@@ -41,6 +41,7 @@ Other spatial helpers:
 \code{\link[=extract_coords]{extract_coords()}},
 \code{\link[=repair_geoms]{repair_geoms()}},
 \code{\link[=save_gpkg]{save_gpkg()}},
-\code{\link[=spatial_join_intersects]{spatial_join_intersects()}}
+\code{\link[=spatial_join_intersects]{spatial_join_intersects()}},
+\code{\link[=sym_difference]{sym_difference()}}
 }
 \concept{spatial helpers}

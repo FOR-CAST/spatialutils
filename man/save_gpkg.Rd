@@ -35,6 +35,7 @@ Other spatial helpers:
 \code{\link[=extract_coords]{extract_coords()}},
 \code{\link[=prep_agg_lonlat_raster]{prep_agg_lonlat_raster()}},
 \code{\link[=repair_geoms]{repair_geoms()}},
-\code{\link[=spatial_join_intersects]{spatial_join_intersects()}}
+\code{\link[=spatial_join_intersects]{spatial_join_intersects()}},
+\code{\link[=sym_difference]{sym_difference()}}
 }
 \concept{spatial helpers}
