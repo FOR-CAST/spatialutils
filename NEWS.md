@@ -1,4 +1,4 @@
-# spatialutils (development version)
+# spatialutils 0.0.1
 
 * `erase_polygons()` takes the difference of two `SpatVector` polygon layers, keeping `x`'s
   attributes. `terra::erase()` can return a `SpatVector` carrying one more attribute row than it has
