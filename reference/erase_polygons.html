@@ -18,7 +18,7 @@ back with whatever part of it lies outside y."><!-- mathjax --><script src="http
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spatialutils</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9017</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9018</span>
       </span>
     </div>
 
@@ -55,7 +55,15 @@ back with whatever part of it lies outside <code>y</code>.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">erase_polygons</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">erase_polygons</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'sf'</span></span>
+<span><span class="fu">erase_polygons</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'SpatVector'</span></span>
+<span><span class="fu">erase_polygons</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">erase_polygons_tiled</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">tiles</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -72,12 +80,34 @@ returned unchanged – <code><a href="https://r-spatial.github.io/sf/reference/g
 geometry, and <code><a href="https://r-spatial.github.io/sf/reference/geos_binary_ops.html" class="external-link">sf::st_difference()</a></code> against that fails with a message that
 says nothing about the cause.</p></dd>
 
+
+<dt id="arg-tiles">tiles<a class="anchor" aria-label="anchor" href="#arg-tiles"></a></dt>
+<dd><p><code>SpatVector</code> or <code>sf</code> of tile polygons covering <code>x</code>. Reuse an existing grid where one
+exists – see the note in <code>Details</code>.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     <p><code>SpatVector</code> polygons carrying <code>x</code>'s attributes, always with exactly
 as many attribute rows as geometries. Empty, but with <code>x</code>'s columns intact,
 when <code>y</code> covers <code>x</code> completely.</p>
+    </div>
+    <div id="details">
+    <h2>Details</h2>
+    <p><code>erase_polygons_tiled()</code> is the same operation done tile by tile. It exists because the cost of a
+difference is superlinear in the complexity of <code>y</code>: when <code>y</code> is one large dissolved multipolygon,
+every feature of <code>x</code> pays for district-wide geometry no matter how small it is. Cropping both
+sides to a tile shrinks the <code>y</code> each difference sees.</p>
+<p>Measured on a 40,301-polygon layer differenced against a single 1.88 Mha multipolygon:
+11,157 s untiled against 201.8 s over 56 tiles, a 55.3x reduction, with identical output. On a
+second, larger study area the same change took a target from 27.6 h to 35 min (46.7x), again
+producing bit-identical geometry – 32,305 features and 513,509.0693 ha either way.</p>
+<p>It is not always a win. Tiling adds a crop per tile, so it pays only when <code>y</code> is complex enough
+that shrinking it saves more than the crops cost. Measure before adopting it.</p>
+<p>Geometries crossing a tile seam come back SPLIT. Dissolve after this returns, never per tile, if
+they need rejoining – a dissolve that sees only one half of a split feature cannot rejoin it.
+Reuse an existing grid where the layer was built on one: it already carries vertices lying
+exactly on those seam coordinates, so re-cutting adds no new vertices and the halves abut exactly.</p>
     </div>
     <div id="why-this-goes-through-sf-rather-than-terra">
     <h2>Why this goes through sf rather than terra</h2>
