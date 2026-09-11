@@ -1,30 +1,6 @@
 # spatialutils 0.0.1
 
-* `erase_polygons()` and `sym_difference()` are now S3 generics with `sf` and `SpatVector` methods,
-  so an `sf` caller is no longer forced through terra and back. That round-trip was not merely
-  wasteful (~18% on a 3,393-polygon layer): `erase_polygons()` goes through sf SPECIFICALLY because
-  `terra::erase()` can return one more attribute row than it has geometries, so routing sf callers
-  sf -> SpatVector -> sf -> SpatVector -> sf pushed them through the exact conversion the design
-  exists to avoid, twice. Each method now returns the class it was given. No existing caller
-  changes: every use in this package and its known callers passes `SpatVector`s.
-* `erase_polygons_tiled()` does the difference tile by tile. The cost of a difference is superlinear
-  in the complexity of the layer being subtracted, so when that layer is one large dissolved
-  multipolygon every feature pays for its full complexity. Measured on a 40,301-polygon layer against
-  a single 1.88 Mha multipolygon: 11,157 s -> 201.8 s over 56 tiles (55.3x), identical output. On a
-  larger study area the same change took a pipeline target from 27.6 h to 35 min (46.7x), again
-  bit-identical -- 32,305 features and 513,509.0693 ha either way. Not always a win: tiling adds a
-  crop per tile, so measure before adopting it.
-* `sym_difference()` and `sym_difference_tiled()` give the symmetric difference of two polygon
-  layers, built from two `erase_polygons()` calls so they inherit its guards. Against
-  `terra::symdif()` on real data: 8.05x and 19.33x respectively, with identical area. The result
-  carries geometry and a `source` column rather than attributes, because the two halves come from
-  layers with different columns and `rbind()` on `SpatVector`s NA-fills mismatches silently --
-  reporting "this attribute is NA here" where the truth is "this attribute does not exist on this
-  side".
-* Tiling `intersect_relate()` was tried and REJECTED: correct, but 0.83x -- 20% slower. It already
-  drops the features that cannot possibly intersect before calling `terra::intersect()`, so tiling
-  adds a crop per tile on top of pre-filtering that is already happening. Recorded so the idea is
-  not retried.
+## New features
 
 * `erase_polygons()` takes the difference of two `SpatVector` polygon layers, keeping `x`'s
   attributes. `terra::erase()` can return a `SpatVector` carrying one more attribute row than it has
@@ -32,13 +8,13 @@
   attribute row -- and nothing complains until something else reads the attributes, a long way from
   the cause (<https://github.com/rspatial/terra/issues/2179>). Going through `sf` cannot
   desynchronise, because the attributes are columns of the same data frame as the geometry.
-* `intersect_clean()` no longer fails when the intersection contains a bare `LINESTRING`. Two
-  polygons that share only an edge intersect in a line, with no `GEOMETRYCOLLECTION` anywhere in the
-  result, so the guard testing only for collections never fired and `st_cast()` then aborted with
-  "`x` must contain polygon geometries, not lines".
-* `intersect_clean()` no longer fails when the intersection is empty -- layers that only touch, or
-  do not meet at all. It returned an empty `sf` object through `do.call(rbind, list())`, which is
-  `NULL`, and failed on the next line instead.
+* `erase_polygons_tiled()` does the difference tile by tile. The cost of a difference is superlinear
+  in the complexity of the layer being subtracted, so when that layer is one large dissolved
+  multipolygon every feature pays for its full complexity. Measured on a 40,301-polygon layer against
+  a single 1.88 Mha multipolygon: 11,157 s -> 201.8 s over 56 tiles (55.3x), identical output. On a
+  larger study area the same change took a pipeline target from 27.6 h to 35 min (46.7x), again
+  bit-identical -- 32,305 features and 513,509.0693 ha either way. Not always a win: tiling adds a
+  crop per tile, so measure before adopting it.
 * `keep_polygons()` keeps only the non-empty polygonal features of an `sf` object, extracting them
   from any `GEOMETRYCOLLECTION` first. Testing for `GEOMETRYCOLLECTION` alone is not enough: an
   overlay can leave a bare `LINESTRING` sitting directly in the geometry column, and `terra::vect()`
@@ -47,12 +23,42 @@
   the left layer's footprint exactly -- no area invented, none lost, and none counted twice.
   `sf::st_join()` is not an overlay: it keeps whole geometries from `x` and emits one copy per
   feature of `y` they touch.
+* `sym_difference()` and `sym_difference_tiled()` give the symmetric difference of two polygon
+  layers, built from two `erase_polygons()` calls so they inherit its guards. Against
+  `terra::symdif()` on real data: 8.05x and 19.33x respectively, with identical area. The result
+  carries geometry and a `source` column rather than attributes, because the two halves come from
+  layers with different columns and `rbind()` on `SpatVector`s NA-fills mismatches silently --
+  reporting "this attribute is NA here" where the truth is "this attribute does not exist on this
+  side".
 
+## Enhancements
+
+* `erase_polygons()` and `sym_difference()` are now S3 generics with `sf` and `SpatVector` methods,
+  so an `sf` caller is no longer forced through terra and back. That round-trip was not merely
+  wasteful (~18% on a 3,393-polygon layer): `erase_polygons()` goes through sf SPECIFICALLY because
+  `terra::erase()` can return one more attribute row than it has geometries, so routing sf callers
+  sf -> SpatVector -> sf -> SpatVector -> sf pushed them through the exact conversion the design
+  exists to avoid, twice. Each method now returns the class it was given. No existing caller
+  changes: every use in this package and its known callers passes `SpatVector`s.
 * `intersect_clean()` now **merges** each sliver into the neighbouring polygon it shares the longest
   border with, instead of discarding it with `smoothr::drop_crumbs()`. Dropping meant the result no
   longer covered the same footprint as the intersection and the area in the dropped fragments simply
   vanished; merging is what the ArcGIS `Eliminate` tool does, and is why `eliminate_slivers()` was
-  written (#1). `smoothr` is no longer a dependency.
+  written (#1).
+* `nn_distance()` gains an `exclude` argument, giving the row of `y` that each feature of `x` must
+  not match. This is what lets a *chunk* of a layer be measured against the whole layer -- and
+  therefore what lets the chunks run in parallel -- since otherwise every feature of the subset
+  finds itself at distance 0. Defaults to the previous self-exclusion behaviour.
+
+## Bug fixes
+
+* `intersect_clean()` no longer fails when the intersection contains a bare `LINESTRING`. Two
+  polygons that share only an edge intersect in a line, with no `GEOMETRYCOLLECTION` anywhere in the
+  result, so the guard testing only for collections never fired and `st_cast()` then aborted with
+  "`x` must contain polygon geometries, not lines".
+* `intersect_clean()` no longer fails when the intersection is empty -- layers that only touch, or
+  do not meet at all. It returned an empty `sf` object through `do.call(rbind, list())`, which is
+  `NULL`, and failed on the next line instead.
 * `read_vector_aoi()` now returns valid geometry. Source layers contain invalid features -- a single
   self-intersecting polygon in the BC CEF Forest Disturbance layer was enough to abort a pipeline
   branch with "TopologyException: side location conflict" -- and every GEOS overlay a caller reaches
@@ -64,10 +70,18 @@
   *proxy* reader rejects such a layer outright, which aborted the read; a failed proxy now falls
   back to the ordinary filtered read, which handles it.
 
-* `nn_distance()` gains an `exclude` argument, giving the row of `y` that each feature of `x` must
-  not match. This is what lets a *chunk* of a layer be measured against the whole layer -- and
-  therefore what lets the chunks run in parallel -- since otherwise every feature of the subset
-  finds itself at distance 0. Defaults to the previous self-exclusion behaviour.
+## Dependency changes
+
+* `smoothr` is no longer a dependency. `intersect_clean()` was its only user, and it now merges
+  slivers into their longest-shared-border neighbour instead of dropping them with
+  `smoothr::drop_crumbs()`.
+
+## Notes
+
+* Tiling `intersect_relate()` was tried and REJECTED: correct, but 0.83x -- 20% slower. It already
+  drops the features that cannot possibly intersect before calling `terra::intersect()`, so tiling
+  adds a crop per tile on top of pre-filtering that is already happening. Recorded so the idea is
+  not retried.
 
 # spatialutils 0.0.0.9013
 
