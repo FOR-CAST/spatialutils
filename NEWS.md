@@ -1,4 +1,4 @@
-# spatialutils (development version)
+# spatialutils 0.0.1
 
 * `erase_polygons()` and `sym_difference()` are now S3 generics with `sf` and `SpatVector` methods,
   so an `sf` caller is no longer forced through terra and back. That round-trip was not merely
