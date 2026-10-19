@@ -49,7 +49,7 @@ and is preferable to area-thresholding crumbs away (see intersect_clean()).'><!-
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Eliminate sliver polygons by merging them into a neighbour</h1>
-    <small class="dont-index">Source: <a href="https://github.com/FOR-CAST/spatialutils/blob/v0.0.1/R/eliminate_slivers.R" class="external-link"><code>R/eliminate_slivers.R</code></a></small>
+    <small class="dont-index">Source: <a href="https://github.com/FOR-CAST/spatialutils/blob/main/R/eliminate_slivers.R" class="external-link"><code>R/eliminate_slivers.R</code></a></small>
     <div class="hidden name"><code>eliminate_slivers.Rd</code></div>
     </div>
 
@@ -163,7 +163,7 @@ but should never be dissolved away.</p>
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Linking to GEOS 3.12.2, GDAL 3.11.4, PROJ 9.4.1; sf_use_s2() is TRUE</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">sq</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">xmin</span>, <span class="va">xmax</span>, <span class="va">ymin</span>, <span class="va">ymax</span>, <span class="va">id</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_polygon</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span></span>
