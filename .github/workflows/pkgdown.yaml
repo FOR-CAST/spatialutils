@@ -32,7 +32,7 @@ jobs:
         with:
           extra-repositories: 'https://PredictiveEcology.r-universe.dev/'
           Ncpus: 2
-          use-public-rspm: false
+          use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
