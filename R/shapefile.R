@@ -69,6 +69,31 @@ stop_if_dbf_truncated <- function(src) {
   invisible(src)
 }
 
+#' Read a vector layer, stopping on a truncated shapefile
+#'
+#' [terra::vect()] with the check that [read_vector_aoi()] and [prep_vector()]
+#' apply, for code that reads a layer itself. A shapefile whose attribute table
+#' (`.dbf`) holds fewer records than its `.shx` indexes shapes is an error. GDAL
+#' would stop at the first shape without a record and return the shapes before
+#' it with only a warning; a `.dbf` cut at the 2 GiB dBASE size limit is in this
+#' state. Where the `.shx` and `.dbf` cannot be found beside the `.shp` (an
+#' archive read through `/vsizip/`, say), GDAL's warning that it could not read
+#' a record is made an error instead.
+#'
+#' @param src A file path or data source readable by [terra::vect()].
+#' @param ... Passed to [terra::vect()], e.g. `layer`, `query` or `filter`.
+#'
+#' @return A `SpatVector`.
+#'
+#' @seealso [read_vector_aoi()] to read only the features in an area of interest.
+#' @export
+#' @examples
+#' read_vector(system.file("ex/lux.shp", package = "terra"))
+read_vector <- function(src, ...) {
+  stop_if_dbf_truncated(src)
+  with_dbf_guard(terra::vect(src, ...), src)
+}
+
 ## Evaluate a read of `src`, turning GDAL's warning that it could not read an attribute record into
 ## an error. This covers sources `stop_if_dbf_truncated()` cannot inspect (an archive read through
 ## /vsizip/, say), where the warning is the only sign that features were dropped.

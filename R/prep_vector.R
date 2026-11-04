@@ -55,8 +55,7 @@ prep_vector <- function(
   buffer = 0.1
 ) {
   if (!inherits(x, "SpatVector")) {
-    stop_if_dbf_truncated(x) ## a shapefile short of attribute records reads as a subset
-    x <- with_dbf_guard(terra::vect(x), x)
+    x <- read_vector(x) ## a shapefile short of attribute records reads as a subset
   }
   if (!inherits(studyArea, "SpatVector")) {
     studyArea <- terra::vect(studyArea)

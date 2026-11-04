@@ -1,5 +1,10 @@
 # spatialutils (development version)
 
+## New features
+
+* `read_vector()` reads a vector layer with [terra::vect()] and the same `.dbf` check, for packages
+  that read a layer themselves rather than through `read_vector_aoi()` or `prep_vector()`.
+
 ## Bug fixes
 
 * `read_vector_aoi()` (and so `prep_landbase()`) and `prep_vector()` stop on a shapefile whose
