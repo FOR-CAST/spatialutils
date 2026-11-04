@@ -21,7 +21,8 @@
 #' each of those operations can introduce invalid geometries.
 #'
 #' @param x A `SpatVector`, or a file path or data source readable by
-#'   [terra::vect()].
+#'   [terra::vect()]. A shapefile with fewer attribute records than shapes is an
+#'   error, as in [read_vector_aoi()].
 #' @param studyArea A `SpatVector` (or a source readable by [terra::vect()])
 #'   defining the area of interest, to which `x` is clipped. May be in any CRS.
 #' @param crs Target coordinate reference system, in any form accepted by
@@ -54,7 +55,8 @@ prep_vector <- function(
   buffer = 0.1
 ) {
   if (!inherits(x, "SpatVector")) {
-    x <- terra::vect(x)
+    stop_if_dbf_truncated(x) ## a shapefile short of attribute records reads as a subset
+    x <- with_dbf_guard(terra::vect(x), x)
   }
   if (!inherits(studyArea, "SpatVector")) {
     studyArea <- terra::vect(studyArea)

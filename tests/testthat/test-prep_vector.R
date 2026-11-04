@@ -50,3 +50,10 @@ test_that("prep_vector returns empty (no error) when x does not overlap studyAre
   expect_s4_class(out, "SpatVector")
   expect_equal(nrow(out), 0L)
 })
+
+test_that("prep_vector stops on a shapefile whose .dbf holds fewer records than shapes", {
+  shp <- local_truncated_shapefile(n = 3L, keep = 2L)
+  studyArea <- terra::vect("POLYGON ((-1 -1, 7 -1, 7 2, -1 2, -1 -1))", crs = "EPSG:3857")
+
+  expect_error(prep_vector(shp, studyArea), "2 complete records.*3 shapes")
+})

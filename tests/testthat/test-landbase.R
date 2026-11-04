@@ -56,6 +56,32 @@ test_that("read_vector_aoi returns valid geometry when the source is invalid", {
   expect_no_error(terra::crop(out, aoi))
 })
 
+test_that("read_vector_aoi stops on a shapefile whose .dbf holds fewer records than shapes", {
+  ## The CLS S17 and S20 landbases have .dbf files cut at the 2 GiB dBASE limit: 520,726 records
+  ## for 599,717 and 547,576 shapes. GDAL stops at the first shape without a record and only
+  ## warns, so 13% of S17's shapes left a pipeline run without an error.
+  shp <- local_truncated_shapefile(n = 3L, keep = 2L)
+  aoi <- mk_square(-1, 7, -1, 2)
+
+  ## guards the fixture: read directly, the third shape is lost
+  expect_equal(nrow(suppressWarnings(terra::vect(shp))), 2L)
+
+  expect_error(read_vector_aoi(shp, aoi, fields = "status"), "2 complete records.*3 shapes")
+
+  ## an intact copy of the same layer reads in full
+  intact <- local_truncated_shapefile(n = 3L)
+  expect_equal(nrow(read_vector_aoi(intact, aoi, fields = "status")), 3L)
+})
+
+test_that("read_vector_aoi stops on GDAL's .dbf read failure when it cannot count records", {
+  ## The counts come from the files beside a local .shp. A source GDAL opens some other way (an
+  ## archive through /vsizip/, say) is left to GDAL's warning, which must stop the read too.
+  shp <- local_truncated_shapefile(n = 3L, keep = 2L)
+  local_mocked_bindings(shapefile_counts = function(...) NULL)
+
+  expect_error(read_vector_aoi(shp, mk_square(-1, 7, -1, 2)), "failed on DBF file")
+})
+
 test_that("read_vector_aoi returns an empty SpatVector when nothing overlaps", {
   aoi <- mk_square(0, 1, 0, 1)
   src <- mk_square(20, 21, 20, 21)

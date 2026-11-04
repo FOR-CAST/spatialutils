@@ -15,7 +15,8 @@ prep_vector(
 }
 \arguments{
 \item{x}{A \code{SpatVector}, or a file path or data source readable by
-\code{\link[terra:vect]{terra::vect()}}.}
+\code{\link[terra:vect]{terra::vect()}}. A shapefile with fewer attribute records than shapes is an
+error, as in \code{\link[=read_vector_aoi]{read_vector_aoi()}}.}
 
 \item{studyArea}{A \code{SpatVector} (or a source readable by \code{\link[terra:vect]{terra::vect()}})
 defining the area of interest, to which \code{x} is clipped. May be in any CRS.}

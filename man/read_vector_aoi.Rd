@@ -54,6 +54,11 @@ If the driver cannot honour the pushed-down read it falls back to a spatial
 \code{filter}-only read with the columns subset in R; the \code{relate()} refinement
 (and a final column subset) run regardless, so the result is correct even
 when a driver silently ignores the pushed-down filter.
+
+A shapefile whose attribute table (\code{.dbf}) holds fewer records than its \code{.shx}
+indexes shapes is an error. GDAL would stop at the first shape without a
+record and return the shapes before it with only a warning. A \code{.dbf} cut at
+the 2 GiB dBASE size limit is in this state.
 }
 \examples{
 aoi <- terra::vect("POLYGON ((0 0, 5 0, 5 5, 0 5, 0 0))")

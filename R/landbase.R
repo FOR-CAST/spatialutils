@@ -47,6 +47,11 @@ source_crs <- function(src, layer = "", proxy = NULL) {
 #' (and a final column subset) run regardless, so the result is correct even
 #' when a driver silently ignores the pushed-down filter.
 #'
+#' A shapefile whose attribute table (`.dbf`) holds fewer records than its `.shx`
+#' indexes shapes is an error. GDAL would stop at the first shape without a
+#' record and return the shapes before it with only a warning. A `.dbf` cut at
+#' the 2 GiB dBASE size limit is in this state.
+#'
 #' @param src A `SpatVector`, or a file path / data source readable by
 #'   [terra::vect()] (e.g. a shapefile, GeoPackage, or File Geodatabase).
 #' @param aoi A `SpatVector` (or a source readable by [terra::vect()]) defining
@@ -84,6 +89,9 @@ read_vector_aoi <- function(src, aoi, fields = NULL, layer = NULL, relation = "i
   } else {
     lyr <- if (is.null(layer)) "" else layer
 
+    ## a shapefile with fewer attribute records than shapes reads as a subset, with only a warning
+    stop_if_dbf_truncated(src)
+
     ## A layer holding a MIX of POLYGON and MULTIPOLYGON geometries -- which is what
     ## `sf::st_write()` produces, and very common in GeoPackages -- is declared with geometry type
     ## "Unknown (any)", and terra's *proxy* reader rejects that outright ("cannot read this geometry
@@ -101,30 +109,35 @@ read_vector_aoi <- function(src, aoi, fields = NULL, layer = NULL, relation = "i
     pushOK <- !is.null(proxy)
     v <- NULL
 
+    ## `with_dbf_guard()` is outside the `tryCatch()`, so its error stops the read rather than
+    ## sending it to the fallback below.
     if (pushOK) {
-      v <- withCallingHandlers(
-        tryCatch(
-          if (is.null(fields)) {
-            terra::query(proxy, filter = aoiSrc)
-          } else {
-            terra::query(proxy, vars = fields, filter = aoiSrc)
-          },
-          error = function(e) {
-            pushOK <<- FALSE
-            NULL
+      v <- with_dbf_guard(
+        withCallingHandlers(
+          tryCatch(
+            if (is.null(fields)) {
+              terra::query(proxy, filter = aoiSrc)
+            } else {
+              terra::query(proxy, vars = fields, filter = aoiSrc)
+            },
+            error = function(e) {
+              pushOK <<- FALSE
+              NULL
+            }
+          ),
+          warning = function(w) {
+            if (grepl("geometry field|spatial filter", conditionMessage(w), ignore.case = TRUE)) {
+              pushOK <<- FALSE
+              invokeRestart("muffleWarning")
+            }
           }
         ),
-        warning = function(w) {
-          if (grepl("geometry field|spatial filter", conditionMessage(w), ignore.case = TRUE)) {
-            pushOK <<- FALSE
-            invokeRestart("muffleWarning")
-          }
-        }
+        src
       )
     }
 
     if (!isTRUE(pushOK) || is.null(v)) {
-      v <- terra::vect(src, layer = lyr, filter = aoiSrc)
+      v <- with_dbf_guard(terra::vect(src, layer = lyr, filter = aoiSrc), src)
     }
   }
 

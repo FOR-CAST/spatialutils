@@ -1,3 +1,15 @@
+# spatialutils (development version)
+
+## Bug fixes
+
+* `read_vector_aoi()` (and so `prep_landbase()`) and `prep_vector()` stop on a shapefile whose
+  attribute table (`.dbf`) holds fewer records than it has shapes. GDAL stops reading at the first
+  shape without a record and only warns, so the read returned the shapes before it as if they were
+  the whole layer. Two landbase coverages had `.dbf` files cut at the 2 GiB dBASE size limit, and
+  one of them lost 13% of its shapes this way. The counts come from the `.shx` and `.dbf` headers
+  and file sizes; for a source those files cannot be found beside (an archive read through
+  `/vsizip/`), GDAL's warning that it could not read a record is made an error instead.
+
 # spatialutils 0.0.1
 
 ## New features
