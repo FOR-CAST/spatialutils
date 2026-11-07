@@ -7,6 +7,12 @@
 
 ## Bug fixes
 
+* `repair_geoms()` no longer stops with "all SpatVectors must have the same geometry type" when
+  every invalid geometry is a ring with zero area. `terra::makeValid()` returns such a ring as a
+  line, and recombining lines with the valid polygons failed. Those geometries are now dropped, as
+  any other geometry that has no area after repair already was. Found on a historical epoch of a
+  connectivity pipeline, where polygons split at disturbance boundaries left slivers like this.
+
 * `read_vector_aoi()` (and so `prep_landbase()`) and `prep_vector()` stop on a shapefile whose
   attribute table (`.dbf`) holds fewer records than it has shapes. GDAL stops reading at the first
   shape without a record and only warns, so the read returned the shapes before it as if they were

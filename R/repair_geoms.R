@@ -6,6 +6,8 @@
 #' records (e.g. national fire perimeters) where only a small fraction of
 #' geometries are invalid. Any geometry that remains invalid or empty after
 #' repair is dropped, so the result contains only valid, non-empty geometries.
+#' A geometry that repair turns into another type -- a zero-area ring becomes a
+#' line -- is dropped too.
 #'
 #' @param v A `SpatVector`, or an object coercible to one via [terra::vect()].
 #'
@@ -27,6 +29,10 @@ repair_geoms <- function(v) {
   if (!all(valid)) {
     repaired <- terra::makeValid(v[!valid, ])
     repaired <- repaired[terra::is.valid(repaired), ] ## drop any still-invalid after repair
+    ## a ring that collapses to zero area comes back as a line; drop it rather than mix types
+    if (terra::geomtype(repaired) != terra::geomtype(v)) {
+      repaired <- v[integer(0), ]
+    }
     v <- rbind(v[valid, ], repaired)
   }
   v[!terra::is.empty(v), ]

@@ -36,3 +36,17 @@ test_that("repair_geoms() coerces a non-SpatVector input", {
   expect_s4_class(out, "SpatVector")
   expect_equal(sum(terra::is.valid(out)), nrow(out))
 })
+
+test_that("repair_geoms() drops a ring that collapses to a line instead of failing", {
+  ## `makeValid()` turns a zero-area ring into a LINESTRING. When every invalid geometry is one,
+  ## the repaired set comes back as lines, and `rbind()` with the valid polygons used to stop with
+  ## "all SpatVectors must have the same geometry type".
+  collapsed <- terra::vect("POLYGON ((300 0, 310 0, 320 0, 300 0))", crs = "EPSG:3005")
+  v <- rbind(sq(0, 0), sq(120, 0), collapsed)
+  v$id <- c(1L, 2L, 3L)
+  expect_equal(sum(!terra::is.valid(v)), 1L)
+
+  out <- repair_geoms(v)
+  expect_equal(terra::geomtype(out), "polygons")
+  expect_equal(out$id, c(1L, 2L))
+})

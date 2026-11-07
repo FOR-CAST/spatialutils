@@ -20,6 +20,8 @@ This avoids running \code{makeValid()} over an entire layer -- slow on large
 records (e.g. national fire perimeters) where only a small fraction of
 geometries are invalid. Any geometry that remains invalid or empty after
 repair is dropped, so the result contains only valid, non-empty geometries.
+A geometry that repair turns into another type -- a zero-area ring becomes a
+line -- is dropped too.
 }
 \examples{
 bowtie <- terra::vect("POLYGON ((0 0, 2 2, 0 2, 2 0, 0 0))") # self-intersecting
