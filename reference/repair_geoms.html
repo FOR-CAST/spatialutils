@@ -4,7 +4,9 @@ terra::makeValid(), then recombines them with the already-valid majority.
 This avoids running makeValid() over an entire layer – slow on large
 records (e.g. national fire perimeters) where only a small fraction of
 geometries are invalid. Any geometry that remains invalid or empty after
-repair is dropped, so the result contains only valid, non-empty geometries."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+repair is dropped, so the result contains only valid, non-empty geometries.
+A geometry that repair turns into another type – a zero-area ring becomes a
+line – is dropped too."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body data-spy="scroll" data-target="#toc">
@@ -59,7 +61,9 @@ repair is dropped, so the result contains only valid, non-empty geometries."><!-
 This avoids running <code>makeValid()</code> over an entire layer – slow on large
 records (e.g. national fire perimeters) where only a small fraction of
 geometries are invalid. Any geometry that remains invalid or empty after
-repair is dropped, so the result contains only valid, non-empty geometries.</p>
+repair is dropped, so the result contains only valid, non-empty geometries.
+A geometry that repair turns into another type – a zero-area ring becomes a
+line – is dropped too.</p>
     </div>
 
     <div id="ref-usage">
