@@ -42,5 +42,8 @@ jobs:
             any::covr
 
       - name: Test coverage
-        run: covr::codecov()
+        run: |
+          ## Dependabot's runs get no Actions secrets: test under covr, upload only with a token
+          cov <- covr::package_coverage()
+          if (nzchar(Sys.getenv("CODECOV_TOKEN"))) covr::codecov(coverage = cov) else print(cov)
         shell: Rscript {0}
