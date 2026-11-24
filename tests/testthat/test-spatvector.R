@@ -71,13 +71,12 @@ test_that("dissolve_by keeps NA as a group of its own", {
 })
 
 test_that("dissolve_by handles several `by` columns containing NA", {
-  ## terra::aggregate() returns a CORRUPT SpatVector here -- its attribute table has fewer rows
-  ## than it has geometries -- which errors on the next access rather than at the aggregate call
+  ## older terra::aggregate() (1.9-50, for one) returns a CORRUPT SpatVector here -- its attribute
+  ## table has fewer rows than it has geometries -- which errors on the next access rather than at
+  ## the aggregate call; terra 1.9-60 does not. dissolve_by() must be right with either.
   v <- rbind(mk_poly(0, 1, 0, 1), mk_poly(3, 4, 0, 1), mk_poly(6, 7, 0, 1))
   v$class <- c("a", NA, "a")
   v$sub <- c("p", "p", NA)
-
-  expect_error(as.data.frame(terra::aggregate(v, by = c("class", "sub"))))
 
   out <- dissolve_by(v, c("class", "sub"))
 
