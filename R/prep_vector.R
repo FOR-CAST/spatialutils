@@ -61,6 +61,12 @@ prep_vector <- function(
     studyArea <- terra::vect(studyArea)
   }
 
+  ## an empty layer has no extent (NaN) to test for overlap: return it empty, as a layer that does
+  ## not overlap the study area is returned
+  if (nrow(x) == 0L) {
+    return(x)
+  }
+
   fix <- function(v) {
     if (isTRUE(makeValid) && nrow(v) > 0L) terra::makeValid(v) else v
   }

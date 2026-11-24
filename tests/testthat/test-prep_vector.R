@@ -57,3 +57,11 @@ test_that("prep_vector stops on a shapefile whose .dbf holds fewer records than 
 
   expect_error(prep_vector(shp, studyArea), "2 complete records.*3 shapes")
 })
+
+test_that("an empty layer comes back empty, as a layer with no overlap does", {
+  sa <- terra::vect("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))", crs = "EPSG:3857")
+  v <- terra::vect("POLYGON ((5 5, 6 5, 6 6, 5 6, 5 5))", crs = "EPSG:3857")
+  out <- prep_vector(v[integer(0)], sa, crs = "EPSG:3857")
+  expect_s4_class(out, "SpatVector")
+  expect_equal(nrow(out), 0)
+})

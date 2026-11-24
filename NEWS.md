@@ -7,6 +7,8 @@
 
 ## Bug fixes
 
+* `prep_vector()` returns an empty layer empty, as it returns a layer that does not overlap the study area. It errored ("missing value where TRUE/FALSE needed"): an empty `SpatVector` has no extent to test for overlap. A filtered read that finds nothing near the study area gives one (0.0.1.9002).
+
 * `repair_geoms()` no longer stops with "all SpatVectors must have the same geometry type" when
   every invalid geometry is a ring with zero area. `terra::makeValid()` returns such a ring as a
   line, and recombining lines with the valid polygons failed. Those geometries are now dropped, as
