@@ -4,3 +4,4 @@
 ^LICENSE\.md$
 ^air\.toml$
 ^\.git$
+^_pkgdown\.yml$

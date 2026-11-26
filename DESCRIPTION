@@ -8,7 +8,7 @@ Authors@R:
 Description: Miscellaneous utilities to facilitate working with spatial
     data.
 License: Apache License (>= 2)
-URL: https://github.com/FOR-CAST/spatialutils
+URL: https://for-cast.github.io/spatialutils/, https://github.com/FOR-CAST/spatialutils
 BugReports: https://github.com/FOR-CAST/spatialutils/issues
 Depends: 
     R (>= 4.3)
