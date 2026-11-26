@@ -8,6 +8,6 @@ Utilities for working with spatial data
 ## Installation
 
 ``` r
-# install.packages(remotes)
-remotes::install_github("FOR-CAST/spatialutils")
+# install.packages("pak")
+pak::pak("FOR-CAST/spatialutils")
 ```
